@@ -1,30 +1,30 @@
 # Daenerys
 
-��Daenerys����Ϊ����������
+叫Daenerys是因为她有三条龙
 
 ------
 
-## ��Ŀ����
-* go����ʵ�ֵ�web������������ע���¼�߼�
-* ǰ��ģ�¾��������ݿ����ݴӾ�����Ʒ��ȡ
+## 项目概述
+* go语言实现的web服务器，具有注册登录逻辑
+* 前端模仿京东，数据库数据从京东商品爬取
 
 
-### ����
-* go����ץȡ[������Ʒ����ҳ](https://www.jd.com/allSort.aspx),�洢��mysql����
+### 爬虫
+* go爬虫抓取[京东商品分类页](https://www.jd.com/allSort.aspx),存储到mysql表中
 
-### ���ݿ�
-* ����MySQL������InnoDB�����ṩ�������ȵ����͸��õĲ�������
-* ���Ľṹ
-* �������
+### 数据库
+* 采用MySQL，利用InnoDB引擎提供更高粒度的锁和更好的并发性能
+* 表的结构
+* 建表语句
 
-### �����
-* golang���ݲ������������
+### 服务端
+* golang，暂不借助其他框架
 
-### ע���¼����
-- [x] session/cookieʵ�ֵ�¼��֤
-- [ ] redisʵ�ֵ�¼��֤
+### 注册登录功能
+- [x] session/cookie实现登录验证
+- [ ] redis实现登录验证
 
 
-### ǰ��ҳ��
-* ����html+bootstrap+jsʵ��
-* ע�ᡢ��¼����½ʧ�ܡ���¼�ɹ��ĸ�ҳ��
+### 前端页面
+* 常规html+bootstrap+js实现
+* 注册、登录、登陆失败、登录成功四个页面
