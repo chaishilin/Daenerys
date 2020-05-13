@@ -8,6 +8,7 @@ import (
 )
 
 func main() {
+	
 	url := "https://www.jd.com/allSort.aspx"
 	//url := "https://movie.douban.com/tag/#/?sort=T&tags=%E8%B6%85%E7%BA%A7%E8%8B%B1%E9%9B%84"
 	visitURL(url)
@@ -57,8 +58,8 @@ func parseForm(n *html.Node) {
 				if q.Data == "dd" {
 					for c := q.FirstChild; c != nil; c = c.NextSibling {
 						if c.Data == "a" {
-							fmt.Printf("----小类: %s\t", c.FirstChild.Data)
-							fmt.Printf("链接: %s \n", c.Attr[0].Val)
+							//fmt.Printf("----小类: %s\t", c.FirstChild.Data)
+							//fmt.Printf("链接: %s \n", c.Attr[0].Val)
 						}
 					}
 				}
