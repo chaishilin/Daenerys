@@ -15,39 +15,6 @@ const(
 	dataBase = "jddb"
 )
 
-func Hello()  string {
-	return "hello"
-}
-
-/*
-func main() {
-
-
-	//sqlCmd := "insert into small(id,sname,offset) values (4,?,0.8)"
-	//curdSql(conn,sqlCmd,"life 2")
-
-	conn :=InitMySql()
-	sqlCmd := `
-	create table %s(
-	id int,
-	mid int auto_increment,
-	name varchar(20),
-	primary key(mid))
-	engine=InnoDB default charset=utf8
-	`
-	sqlCmd = fmt.Sprintf(sqlCmd,name)
-	CurdSql(conn,sqlCmd)
-
-	conn.Close()
-	//sqlCmd := "select * from small where id = ? and sid <= ?"
-	//selectSql(conn,sqlCmd,3, 7)
-
-
-
-}
-
- */
-
 func InitMySql() *sql.DB {
 	dbInfo := fmt.Sprintf("%s:%s@%s(%s:%d)/%s",userName,passWord,netWork,server,port,dataBase)
 	fmt.Println("log as : ",dbInfo)
@@ -58,20 +25,80 @@ func InitMySql() *sql.DB {
 	return conn
 }
 
-func selectSql(conn *sql.DB,sqlCmd string,args... interface{}){
+func CreateTables(conn *sql.DB){
+	sqlCmd := fmt.Sprintf(`
+								create table IF NOT EXISTS %s(
+								class_id int,
+								pid int,
+								primary key(class_id))
+								engine=InnoDB default charset=utf8
+								`,"classRelate")
+
+	CurdSql(conn, sqlCmd)
+
+
+	sqlCmd = fmt.Sprintf(`
+								create table IF NOT EXISTS %s(
+								class_id int auto_increment,
+								class_name varchar(20),
+								class_href varchar(50),
+								primary key(class_id))
+								engine=InnoDB default charset=utf8
+								`,"classTable")
+	CurdSql(conn, sqlCmd)
+
+
+	sqlCmd = fmt.Sprintf(`
+								create table IF NOT EXISTS %s(
+								goods_id int auto_increment,
+								class_id int,
+								goods_name varchar(20),
+								goods_price float,
+								goods_href varchar(50),
+								primary key(goods_id))
+								engine=InnoDB default charset=utf8
+								`,"classTable")
+	CurdSql(conn, sqlCmd)
+}
+
+func InsertRelate(conn *sql.DB,class_id int,pid int){
+
+	sqlCmd := fmt.Sprintf(`insert into classRelate
+									(class_id,pid)
+									values
+									(%d,%d)
+									`, class_id,pid)
+	CurdSql(conn, sqlCmd)
+}
+func InsertClass(conn *sql.DB,class_id int,class_name string,class_href string){
+	sqlCmd := fmt.Sprintf(`insert into classTable
+									(class_id,class_name,class_href)
+									values
+									(%d,'%s','%s')
+									`, class_id,class_name,class_href)
+	CurdSql(conn, sqlCmd)
+}
+
+func SelectSql(conn *sql.DB,sqlCmd string,args... interface{}) string{
 	////查询所有
 	rows, err := conn.Query(sqlCmd,args...)
 	if err != nil {
 		fmt.Println("Query error ",err.Error())
+		return ""
 	}
 	//查看所有列名
 	cols, err:=rows.Columns()
 	if err != nil {
 		fmt.Println("Columns error ",err.Error())
+		return ""
 	}
+	msg := ""
+	/*
 	for _, col := range cols{
 		println("col:", col)
 	}
+
+	 */
 	vals := make([]sql.RawBytes, len(cols))
 	//vals转换为interface, 查看https://github.com/golang/go/wiki/InterfaceSlice
 	scanArgs := make([]interface{}, len(vals))
@@ -81,12 +108,12 @@ func selectSql(conn *sql.DB,sqlCmd string,args... interface{}){
 	for rows.Next() {
 		rows.Scan(scanArgs...)
 		for _, val := range vals{
-			print(string(val)," ")
+			msg = fmt.Sprintf("%s,%s",msg,string(val))
 		}
-		println()
+		//println()
 	}
+	return msg
 }
-
 
 
 func CurdSql(conn *sql.DB,sqlCmd string,args... interface{}){

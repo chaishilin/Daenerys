@@ -1,37 +1,34 @@
-package main
+package jdSpider
 
 import (
-	"./sqlgo"
+	"../sqlgo"
 	"database/sql"
 	"fmt"
 	"golang.org/x/net/html"
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 )
 
 var conn *sql.DB
+//var count = 1
+var wg sync.WaitGroup
+var mu sync.Mutex
 
+/*
 func main() {
 	conn = sqlgo.InitMySql()
-
-	sqlCmd := fmt.Sprintf(`
-								create table IF NOT EXISTS %s(
-								bid int auto_increment,
-								name varchar(20),
-								href varchar(100),
-								primary key(bid))
-								engine=InnoDB default charset=utf8
-								`,"总目录")
-	sqlgo.CurdSql(conn, sqlCmd)
-
+	sqlgo.CreateTables(conn)
 
 	url := "https://www.jd.com/allSort.aspx"
-	//url := "https://movie.douban.com/tag/#/?sort=T&tags=%E8%B6%85%E7%BA%A7%E8%8B%B1%E9%9B%84"
 	visitURL(url)
+	wg.Wait()
 	fmt.Println("the end ")
 	conn.Close()
 }
+
+ */
 
 func visitURL(url string) {
 	resp, err := http.Get(url)
@@ -49,7 +46,8 @@ func visitURL(url string) {
 }
 
 func getURL(n *html.Node) {
-	parseForm(n)
+	wg.Add(1)
+	go parseForm(n)
 	//do dfs
 	for c := n.FirstChild; c != nil; c = c.NextSibling {
 		getURL(c)
@@ -57,6 +55,7 @@ func getURL(n *html.Node) {
 }
 
 func parseForm(n *html.Node) {
+	defer wg.Done()
 	nodeList := []*html.Node{}
 	var bigName string
 	var midName string
@@ -69,29 +68,24 @@ func parseForm(n *html.Node) {
 		bigName = nodeList[0].FirstChild.Data
 		fmt.Println("\n----------------------------------------------\n")
 		fmt.Printf("大类: %s\t\n", bigName)
-
-
-		sqlCmd := fmt.Sprintf(`
-								create table IF NOT EXISTS %s(
-								mid int auto_increment,
-								name varchar(20),
-								href varchar(100),
-								primary key(mid))
-								engine=InnoDB default charset=utf8
-								`, bigName)
-
-		//sqlCmd := fmt.Sprintf(`drop table %s`, bigName)
-		sqlgo.CurdSql(conn, sqlCmd)
-
-
-
-
-		sqlCmd = fmt.Sprintf(`insert into 总目录
-									(name)
+		mu.Lock()
+		count++
+		sqlCmd1 := fmt.Sprintf(`insert into classTable
+									(class_id,class_name)
 									values
-									('%s')
-									`, bigName)
-		sqlgo.CurdSql(conn, sqlCmd)
+									(%d,'%s')
+									`, count,bigName)
+		sqlCmd2 := fmt.Sprintf(`insert into classRelate
+									(class_id,pid,class_name)
+									values
+									(%d,0,'%s')
+									`, count,bigName)
+		mu.Unlock()
+
+
+		sqlgo.CurdSql(conn, sqlCmd1)
+
+		sqlgo.CurdSql(conn, sqlCmd2)
 
 
 	}
@@ -107,28 +101,27 @@ func parseForm(n *html.Node) {
 			midHref = dtNode.Attr[0].Val
 			fmt.Printf("--中类: %s\t", midName)
 			fmt.Printf("链接: %s \n", midHref)
-
-			sqlCmd := fmt.Sprintf(`
-								create table IF NOT EXISTS %s(
-								sid int auto_increment,
-								name varchar(20),
-								href varchar(100),
-								primary key(sid))
-								engine=InnoDB default charset=utf8
-								`, midName)
-
-
-			//sqlCmd := fmt.Sprintf(`drop table %s`, bigName)
-			sqlgo.CurdSql(conn, sqlCmd)
-
-			sqlCmd = fmt.Sprintf(`insert into %s
-									(name,href)
+			mu.Lock()
+			count++
+			sqlCmd1 := fmt.Sprintf(`insert into classTable
+									(class_name,class_href,class_id)
 									values
-									('%s','%s')
-									`, bigName,midName,midHref)
+									('%s','%s',%d)
+									`, midName,midHref,count)
 
-			//sqlCmd := fmt.Sprintf(`drop table %s`, nodeList[0].FirstChild.Data)
-			sqlgo.CurdSql(conn, sqlCmd)
+			sqlCmd2 := fmt.Sprintf(`insert into classRelate
+									(class_id,pid,class_name)
+									values
+									(%d,0,'%s')
+									`, count,midName)
+			mu.Unlock()
+
+
+			sqlgo.CurdSql(conn, sqlCmd1)
+
+
+
+			sqlgo.CurdSql(conn, sqlCmd2)
 
 
 			ddNode := dtNode.Parent.Parent
@@ -140,15 +133,26 @@ func parseForm(n *html.Node) {
 							smlName = strings.Replace(smlName," ","",-1)
 							smlName = strings.Replace(smlName,"/","",-1)
 							smlHref = c.Attr[0].Val
-
-							sqlCmd := fmt.Sprintf(`insert into %s
-									(name,href)
+							mu.Lock()
+							count++
+							sqlCmd1 := fmt.Sprintf(`insert into classTable
+									(class_name,class_href,class_id)
 									values
-									('%s','%s')
-									`, midName,smlName,smlHref)
+									('%s','%s',%d)
+									`, smlName,smlHref,count)
+							sqlCmd2 := fmt.Sprintf(`insert into classRelate
+									(class_id,pid,class_name)
+									values
+									(%d,0,'%s')
+									`, count,smlName)
+							mu.Unlock()
 
-							//sqlCmd := fmt.Sprintf(`drop table %s`, nodeList[0].FirstChild.Data)
-							sqlgo.CurdSql(conn, sqlCmd)
+
+							sqlgo.CurdSql(conn, sqlCmd1)
+
+
+
+							sqlgo.CurdSql(conn, sqlCmd2)
 
 
 
