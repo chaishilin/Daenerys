@@ -79,20 +79,21 @@ func InsertClass(conn *sql.DB,class_id int,class_name string,class_href string){
 	CurdSql(conn, sqlCmd)
 }
 
-func SelectSql(conn *sql.DB,sqlCmd string,args... interface{}) string{
+func SelectSql(conn *sql.DB,sqlCmd string,args... interface{}) [][]string{
 	////查询所有
+	//SelectSql(conn,"select * from classTable")
 	rows, err := conn.Query(sqlCmd,args...)
 	if err != nil {
 		fmt.Println("Query error ",err.Error())
-		return ""
+		return nil
 	}
 	//查看所有列名
 	cols, err:=rows.Columns()
 	if err != nil {
 		fmt.Println("Columns error ",err.Error())
-		return ""
+		return nil
 	}
-	msg := ""
+	result := [][]string{}
 
 	vals := make([]sql.RawBytes, len(cols))
 	//vals转换为interface, 查看https://github.com/golang/go/wiki/InterfaceSlice
@@ -101,11 +102,33 @@ func SelectSql(conn *sql.DB,sqlCmd string,args... interface{}) string{
 		scanArgs[i] = &vals[i]
 	}
 	for rows.Next() {
+		msg := []string{}
 		rows.Scan(scanArgs...)
 		for _, val := range vals{
-			msg = fmt.Sprintf("%s,%s",msg,string(val))
+			msg =append(msg,string(val))
+
 		}
-		//println()
+		result = append(result,msg)
 	}
-	return msg
+	return result
+}
+
+func CurdSql(conn *sql.DB,sqlCmd string,args... interface{}){
+	//fmt.Println(conn)
+	stmt, err := conn.Prepare(sqlCmd)
+	if err != nil {
+		fmt.Println("prepare error ",err.Error())
+	}
+	_, err = stmt.Exec(args...)
+	if err != nil {
+		fmt.Println("can not exec arg",err.Error())
+	}
+	/*
+		//获取最后插入的id
+		rid, _ := rs.LastInsertId()
+		fmt.Println("id:", rid)
+		//获取影响的行数
+		affectNum, _ := rs.RowsAffected()
+		fmt.Println("affectNum:", affectNum)
+	*/
 }

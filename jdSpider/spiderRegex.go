@@ -13,12 +13,12 @@ const (
 	dlReg    = `<dl class=\"clearfix\"[\s\S]*?</dl>`
 	dtReg    = `<dt>[\s\S]+?</dt>`
 	ddReg    = `<dd>[\s\S]+?</dd>`
-	infoReg  = `<a href="([\/\.\?\-,=0-9a-zA-Z]+)"[^>]*>([^<]+)</a>`
+	infoReg  = `<a href="([\/\.\?\-,=&_0-9a-zA-Z]+)"[^>]*>([^<]+)</a>`
 )
 
 //select a.class_id,b.pid,a.class_name from classTable as a join classRelate as b where a.class_id = b.class_id and b.pid = 1108;
 
-var count = 0.
+var count = 0
 
 // 能不能把count改成管道？
 
@@ -54,7 +54,7 @@ func DoSpider(htmlMsg string,conn *sql.DB) {
 		dls := regexp.MustCompile(dlReg).FindAllString(each, -1)
 
 		for _, eachdl := range dls {
-			go func(eachdl string) {
+			func(eachdl string) {
 				dtresults, pid := findMatch(eachdl, dtReg, pid)
 				for _, v := range dtresults {
 					count++
