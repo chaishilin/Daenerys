@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 )
 
@@ -27,8 +28,9 @@ const (
 						where a.class_id = b.class_id and 
 						a.class_name regexp '%s';`
 )
-
+var passwd string
 func main() {
+	passwd = os.Args[1:][0]
 	mux := http.NewServeMux()
 	mux.HandleFunc("/hello", classHandler)
 	mux.HandleFunc("/", logHandler)
@@ -40,6 +42,7 @@ func main() {
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
+
 
 }
 
@@ -79,7 +82,7 @@ func classHandler(w http.ResponseWriter, r *http.Request) {
 func logHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		r.ParseForm()
-		conn := redisconfirm.InitRedis()
+		conn := redisconfirm.InitRedis(passwd)
 		logCheck := redisconfirm.LogCheck(&conn, r.Form.Get("username"), r.Form.Get("passwd"))
 
 		if logCheck == false {
@@ -98,7 +101,7 @@ func logHandler(w http.ResponseWriter, r *http.Request) {
 
 func registHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
-		conn := redisconfirm.InitRedis()
+		conn := redisconfirm.InitRedis(passwd)
 		r.ParseForm()
 		_, state, _ := redisconfirm.Register(&conn, r.Form.Get("username"), r.Form.Get("passwd"))
 		if state == redisconfirm.SetOk {

@@ -25,12 +25,13 @@ func main() {
 }
 */
 
-func InitRedis() redis.Conn {
+func InitRedis(passwd string) redis.Conn {
 	conn, err := redis.Dial("tcp", ":6379")
 	if err != nil {
 		fmt.Println("redis connect error : ", err)
 		return nil
 	}
+	conn.Do("auth", passwd)
 	return conn
 }
 
