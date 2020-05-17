@@ -17,7 +17,7 @@ const(
 
 func InitMySql() *sql.DB {
 	dbInfo := fmt.Sprintf("%s:%s@%s(%s:%d)/%s",userName,passWord,netWork,server,port,dataBase)
-	fmt.Println("log as : ",dbInfo)
+	//fmt.Println("log as : ",dbInfo)
 	conn, err := sql.Open("mysql", dbInfo)
 	if nil != err {
 		fmt.Println("connect db error: ", err)
