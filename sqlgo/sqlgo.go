@@ -57,7 +57,7 @@ func CreateTables(conn *sql.DB){
 								goods_href varchar(50),
 								primary key(goods_id))
 								engine=InnoDB default charset=utf8
-								`,"classTable")
+								`,"goodsTable")
 	CurdSql(conn, sqlCmd)
 }
 
