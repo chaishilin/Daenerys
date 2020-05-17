@@ -1,4 +1,4 @@
-package main
+package redisconfirm
 
 import (
 	"fmt"
@@ -8,13 +8,13 @@ import (
 type redisState int32
 
 const (
-	getOk redisState = iota
-	getErr
-	setOk
-	setExist
-	setErr
+	GetOk redisState = iota
+	GetErr
+	SetOk
+	SetExist
+	SetErr
 )
-
+/*
 func main() {
 
 	conn := InitRedis()
@@ -23,46 +23,64 @@ func main() {
 	conn.Close()
 
 }
+*/
 
-func InitRedis() redis.Conn {
+func InitRedis(passwd string) redis.Conn {
 	conn, err := redis.Dial("tcp", ":6379")
 	if err != nil {
 		fmt.Println("redis connect error : ", err)
 		return nil
 	}
+	conn.Do("auth", passwd)
 	return conn
 }
 
-func GetUsername(conn *redis.Conn, name string) (string, redisState, error) {
+
+
+
+
+func getUsername(conn *redis.Conn, name string) (string, redisState, error) {
 	resp, err := (*conn).Do("get", name)
 	if err != nil {
 		err = fmt.Errorf("redis set error : ", err)
-		return "", getErr, err
+		return "", GetErr, err
 	}
 	resMsg := fmt.Sprintf("%v", resp)
 	if resMsg == "<nil>" {
-		return resMsg, getErr, nil
+		return resMsg, GetErr, nil
 	}
 	resMsg = fmt.Sprintf("%s", resp)
-	return resMsg, getOk, nil
+	return resMsg, GetOk, nil
 }
+func LogCheck (conn *redis.Conn,name string, password string) bool {
 
+	respGet, getState, _ :=  getUsername(conn,name)
+	if getState != GetOk {
+		return false
+	}else{
+		if respGet == password{
+			return true
+		}else{
+			return false
+		}
+	}
+}
 func Register(conn *redis.Conn, name string, password string) (string, redisState, error) {
 	var resMsg string
 
-	respGet, getState, _ := GetUsername(conn, name)
+	respGet, getState, _ := getUsername(conn, name)
 
-	if getState == getOk {
-		return respGet, setExist, nil
+	if getState == GetOk {
+		return respGet, SetExist, nil
 	}
 
 	respDo, err := (*conn).Do("set", name, password)
 	if err != nil {
 		err = fmt.Errorf("redis set error : %s ", err)
-		return "", setErr, err
+		return "", SetErr, err
 	}
 	resMsg = fmt.Sprintf("%s", respDo)
-	return resMsg, setOk, nil
+	return resMsg, SetOk, nil
 }
 
 func stateParser(code redisState) string {
