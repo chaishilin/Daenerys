@@ -1,7 +1,7 @@
 package jdSpider
 
 import (
-	"../sqlgo"
+	//"../sqlgo"
 	"database/sql"
 	"fmt"
 	"regexp"
@@ -18,7 +18,7 @@ const (
 
 //select a.class_id,b.pid,a.class_name from classTable as a join classRelate as b where a.class_id = b.class_id and b.pid = 1108;
 
-var count = 0.
+var count = 0
 
 // 能不能把count改成管道？
 
@@ -47,31 +47,32 @@ func DoSpider(htmlMsg string,conn *sql.DB) {
 
 		count++
 		fmt.Println("--", count, 0, string(titles[0][1]))
-		sqlgo.InsertClass(conn,count,string(titles[0][1]),"")
-		sqlgo.InsertRelate(conn,count,0)
+		//sqlgo.InsertClass(conn,count,string(titles[0][1]),"")
+		//sqlgo.InsertRelate(conn,count,0)
 
 		pid := count
 		dls := regexp.MustCompile(dlReg).FindAllString(each, -1)
 
 		for _, eachdl := range dls {
-			go func(eachdl string) {
+			func(eachdl string) {
 				dtresults, pid := findMatch(eachdl, dtReg, pid)
 				for _, v := range dtresults {
 					count++
 					fmt.Println("----", count, pid, v[1], v[0])
-					sqlgo.InsertClass(conn,count,v[1],v[0])
-					sqlgo.InsertRelate(conn,count,pid)
+					//sqlgo.InsertClass(conn,count,v[1],v[0])
+					//sqlgo.InsertRelate(conn,count,pid)
 				}
 				dlresults, pid := findMatch(eachdl, ddReg, count)
 				for _, v := range dlresults {
 					count++
 					fmt.Println("--------", count, pid, v[1], v[0])
-					sqlgo.InsertClass(conn,count,v[1],v[0])
-					sqlgo.InsertRelate(conn,count,pid)
+					//sqlgo.InsertClass(conn,count,v[1],v[0])
+					//sqlgo.InsertRelate(conn,count,pid)
 				}
 			}(eachdl)
 		}
 	}
+	fmt.Println(count)
 }
 
 func findMatch(str string, reg string, pid int) ([][]string, int) {
