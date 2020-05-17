@@ -4,19 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Go Web 编程之 模板（二）</title>
+    <title>京东商品目录</title>
+    <h1 align="center">京东商品目录</h1>
+    <br>
 </head>
 <body>
-    {{ range . }}
-        分类名称:  <a href={{ .Href }}>{{.Name}}</a>
-        <br>
-        分类id:  {{ .Id }}
-        父类id:  {{ .Pid }}
-        <br>
-        <br>
-    {{else}}nothing to say
 
+    <div style="text-align: center">
+        <b>输入查询的商品id</b>
+        <!--get id and all child-->
+        <form accept-charset="utf-8" name="whatForm" method="post">
+            <input name="input" type="text">
+            <input type="submit" value="查询">
+            <br>
+            <br>
+        </form>
+    {{ range . }}
+        分类id:  {{ .Id }}
+        分类名称:  <a  href={{ .Href }}>{{.Name}}</a>
+        <br>
+        <br>
     {{end}}
+    </div>
 </body>
 </html>
 
