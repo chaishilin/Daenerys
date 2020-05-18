@@ -5,6 +5,7 @@ import (
 	"./sqlgo"
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -80,6 +81,18 @@ func classHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func logHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		file,_ := ioutil.ReadFile("./root/test.html")
+		fmt.Fprintf(w,string(file))
+	}else if r.Method == "POST" {
+		r.ParseForm()
+		conn := redisconfirm.InitRedis(passwd)
+		logCheck := redisconfirm.LogCheck(&conn, r.Form.Get("name"), r.Form.Get("pwd"))
+		fmt.Fprint(w,logCheck)
+
+	}
+
+	/*
 	if r.Method == "POST" {
 		r.ParseForm()
 		conn := redisconfirm.InitRedis(passwd)
@@ -97,6 +110,8 @@ func logHandler(w http.ResponseWriter, r *http.Request) {
 		t, _ := template.ParseFiles("./root/log.html")
 		t.Execute(w, "")
 	}
+
+	 */
 }
 
 func registHandler(w http.ResponseWriter, r *http.Request) {

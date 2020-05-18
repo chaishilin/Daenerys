@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdn.staticfile.org/popper.js/1.15.0/umd/popper.min.js"></script>
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+    <title>Title</title>
+</head>
+
+<body>
+    <div class="container">
+        <nav class="navbar navbar-expand-sm bg-dark navbar-dark  fixed-top">
+            <!--brand-->
+            <a class="navbar-brand text-muted">京东商品查询</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#some">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="some" style="font-size: large">
+                <ul class="nav navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-toggle="tab" href="#home">登录</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-toggle="tab" href="#regist">注册</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-toggle="tab" href="#iforgot">找回密码</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Tab panes -->
+        <script>
+            function pwdVerify() {
+                var pwd,name,text;
+                pwd = document.getElementById("log-pwd").value;
+                name = document.getElementById("log-username").value;
+                $(document).ready(function () {
+                    $.post("/",
+                        {
+                            name:name,
+                            pwd:pwd
+                        },
+                        function (data) {
+                            //console.log(data)
+                            if (data == "true"){
+                                //登录成功
+                                location="/hello"
+                            }else{
+                                text = "请输入正确的用户名和密码";
+                            }
+                            document.getElementById("logAlert").innerHTML = text;
+                        })
+                })
+            }
+            function logVerify() {
+                var vcode,text;
+
+                vcode = document.getElementById("log-vcode").value;
+
+                if (isNaN(vcode) || vcode< 1 || vcode>10){
+                    text = "验证码错误"
+                    document.getElementById("logAlert").innerHTML = text;
+                } else {
+                    pwdVerify()
+                }
+            }
+        </script>
+
+        <br>
+        <br>
+        <br>
+        <div class="tab-content" style="font-size: large">
+            <div class="tab-pane active container" id="home">
+                <div class="card bg-dark text-white">
+                    <div class="card-header">用户登录</div>
+                    <div class="card-body">
+                        <form method="post" >
+                            <div class="form-group">
+                                <label for="username">用户名：</label>
+                                <input type="text" class="form-control" id="log-username">
+                            </div>
+                            <div class="form-group">
+                                <label for="pwd">密码：</label>
+                                <input type="password" class="form-control" id="log-pwd">
+                            </div>
+                            <div class="form-group">
+                                <label for="text">验证码：</label>
+                                <input type="text" class="form-control" id="log-vcode">
+                            </div>
+                            <p><strong id="logAlert"> </strong></p>
+                            <button type="button" class="btn btn-primary" onclick="logVerify()">登录</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane container" id="regist">
+                <div class="card bg-dark text-white ">
+                    <div class="card-header">注册</div>
+                    <div class="card-body">
+                        <form>
+                            <div class="form-group">
+                                <label for="username">用户名：</label>
+                                <input type="text" class="form-control" id="regist-username">
+                            </div>
+                            <div class="form-group">
+                                <label for="pwd">密码：</label>
+                                <input type="password" class="form-control" id="regist-pwd">
+                            </div>
+                            <div class="form-group">
+                                <label for="pwd">重复密码：</label>
+                                <input type="password" class="form-control" id="regist-pwd-2">
+                            </div>
+                            <div class="form-group">
+                                <label for="email">邮箱：</label>
+                                <input type="text" class="form-control" id="regist-email">
+                            </div>
+                            <div class="form-group">
+                                <label for="vcode">验证码：</label>
+                                <input type="text" class="form-control" id="regist-vcode">
+                            </div>
+                            <button type="submit" class="btn btn-primary">提交信息</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane container" id="iforgot">
+                <div class="card bg-dark text-white">
+                    <div class="card-header">找回密码</div>
+                    <div class="card-body">
+                        <form>
+                            <div class="form-group">
+                                <label for="username">用户名：</label>
+                                <input type="text" class="form-control" id="forgot-username">
+                            </div>
+                            <div class="form-group">
+                                <label for="email">邮箱：</label>
+                                <input type="text" class="form-control" id="forgot-email">
+                            </div>
+                            <div class="form-group">
+                                <label for="vcode">验证码：</label>
+                                <input type="text" class="form-control" id="forgot-vcode">
+                            </div>
+                            <button type="submit" class="btn btn-primary">提交信息</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
