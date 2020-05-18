@@ -24,13 +24,13 @@
             <div class="collapse navbar-collapse" id="some">
                 <ul class="nav navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link active" data-toggle="tab" href="#user">用户管理</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" data-toggle="tab" href="#class">分类管理</a>
+                        <a class="nav-link active" data-toggle="tab" href="#class">分类管理</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" data-toggle="tab" href="#goods">商品管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link " data-toggle="tab" href="#user">用户管理</a>
                     </li>
                 </ul>
             </div>
@@ -40,44 +40,27 @@
         <br>
         <br>
         <br>
+
+        <script>
+            function classQuery() {
+                var text;
+                text = document.getElementById("classinfo").value;
+                console.log(text)
+                document.getElementById("classResult").innerHTML = text;
+            }
+        </script>
+
         <div class="tab-content">
-            <div class="tab-pane active container" id="user">
-                <div class="card bg-dark text-white">
-                    <div class="card-header">用户管理</div>
-                    <div class="card-body">
-                    <form>
-                        <div class="form-group">
-                            <label for="username">用户名：</label>
-                            <input type="username" class="form-control" id="username">
-                        </div>
-                        <div class="form-group">
-                            <label for="email">邮箱：</label>
-                            <input type="email" class="form-control" id="email">
-                        </div>
-                        <div class="form-group">
-                            <label for="vcode">原密码：</label>
-                            <input type="vcode" class="form-control" id="vcode">
-                        </div>
-                        <div class="form-group">
-                            <label for="vcode">新密码：</label>
-                            <input type="vcode" class="form-control" id="vcode">
-                        </div>
-                        <button type="submit"class="btn btn-primary">确认修改</button>
-                        <button type="submit"class="btn btn-primary">退出登录</button>
-                    </form>
-                    </div>
-                </div>
-            </div>
-            <div class="tab-pane container" id="class">
+            <div class="tab-pane active container" id="class">
                 <div class="card bg-dark text-white">
                     <div class="card-header">分类管理/查询</div>
                     <div class="card-body">
                         <form>
                             <div class="form-group">
-                                <label for="username">输入查询的分类id或名称(如'1','书刊'等)：</label>
-                                <input type="username" class="form-control" id="username">
+                                <label for="classinfo">输入查询的分类id或名称(如'1','书刊'等)：</label>
+                                <input type="text" class="form-control" id="classinfo">
                             </div>
-                            <button type="submit"class="btn btn-primary">查询</button>
+                            <button type="button"class="btn btn-primary" onclick="classQuery()">查询</button>
                         </form>
                     </div>
                 </div>
@@ -86,6 +69,7 @@
                     <div class="col-sm-6 col-md-4">
                 <div class="card bg-secondary">
                     <div class="card-header"><a class=card-link" href="#">电器</a></div>
+                    <div class="card-body"><a class=card-link" style="color: wheat" href="#" id="classResult"></a></div>
                     <div class="card-body"><a class=card-link" style="color: wheat" href="#">家电</a></div>
                     <div class="card-body"><a class=card-link" style="color: wheat" href="#">手机</a></div>
                     <div class="card-body"><a class=card-link" href="#">配件</a></div>
@@ -124,7 +108,34 @@
                                 <label for="username">输入查询的商品id或名称(如'1','iPhone'等)：</label>
                                 <input type="username" class="form-control" id="username">
                             </div>
-                            <button type="submit"class="btn btn-primary">查询</button>
+                            <button type="button"class="btn btn-primary">查询</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="tab-pane container" id="user">
+                <div class="card bg-dark text-white">
+                    <div class="card-header">用户管理</div>
+                    <div class="card-body">
+                        <form>
+                            <div class="form-group">
+                                <label for="username">用户名：</label>
+                                <input type="username" class="form-control" id="username">
+                            </div>
+                            <div class="form-group">
+                                <label for="email">邮箱：</label>
+                                <input type="email" class="form-control" id="email">
+                            </div>
+                            <div class="form-group">
+                                <label for="vcode">原密码：</label>
+                                <input type="vcode" class="form-control" id="vcode">
+                            </div>
+                            <div class="form-group">
+                                <label for="vcode">新密码：</label>
+                                <input type="vcode" class="form-control" id="vcode">
+                            </div>
+                            <button type="button"class="btn btn-primary">确认修改</button>
+                            <button type="button"class="btn btn-primary">退出登录</button>
                         </form>
                     </div>
                 </div>

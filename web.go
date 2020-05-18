@@ -2,14 +2,13 @@ package main
 
 import (
 	"./redis"
-	"./sqlgo"
 	"fmt"
+	"github.com/dchest/captcha"
 	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
-	"strconv"
 )
 
 type classes struct {
@@ -36,6 +35,7 @@ func main() {
 	mux.HandleFunc("/hello", classHandler)
 	mux.HandleFunc("/", logHandler)
 	mux.HandleFunc("/regist", registHandler)
+	mux.Handle("/captcha/", captcha.Server(captcha.StdWidth, captcha.StdHeight))
 	server := &http.Server{
 		Addr:    ":18080",
 		Handler: mux,
@@ -48,7 +48,15 @@ func main() {
 }
 
 func classHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		file,_ := ioutil.ReadFile("./root/test2.html")
+		fmt.Fprintf(w,string(file))
+	}else if r.Method == "POST" {
+		r.ParseForm()
+		fmt.Fprint(w,3)
 
+	}
+	/*
 	r.ParseForm()
 
 	classList := []classes{}
@@ -78,12 +86,19 @@ func classHandler(w http.ResponseWriter, r *http.Request) {
 
 	t.Execute(w, classList)
 
+	 */
+
 }
 
 func logHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		file,_ := ioutil.ReadFile("./root/test.html")
-		fmt.Fprintf(w,string(file))
+		CaptchaId := captcha.New()
+		t,_ := template.ParseFiles("./root/test.html")
+		t.Execute(w,CaptchaId)
+
+
+		//file,_ := ioutil.ReadFile("./root/test.html")
+		//fmt.Fprintf(w,string(file))
 	}else if r.Method == "POST" {
 		r.ParseForm()
 		conn := redisconfirm.InitRedis(passwd)
@@ -91,27 +106,6 @@ func logHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w,logCheck)
 
 	}
-
-	/*
-	if r.Method == "POST" {
-		r.ParseForm()
-		conn := redisconfirm.InitRedis(passwd)
-		logCheck := redisconfirm.LogCheck(&conn, r.Form.Get("username"), r.Form.Get("passwd"))
-
-		if logCheck == false {
-			t, _ := template.ParseFiles("./root/log.html")
-			t.Execute(w, "请输入正确的用户名和密码")
-		} else {
-			t, _ := template.ParseFiles("./root/hello.html")
-			t.Execute(w, 0)
-		}
-
-	} else if r.Method == "GET" {
-		t, _ := template.ParseFiles("./root/log.html")
-		t.Execute(w, "")
-	}
-
-	 */
 }
 
 func registHandler(w http.ResponseWriter, r *http.Request) {
@@ -131,4 +125,8 @@ func registHandler(w http.ResponseWriter, r *http.Request) {
 		t.Execute(w, "")
 
 	}
+}
+
+func doVerify(){
+
 }

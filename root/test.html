@@ -52,6 +52,7 @@
                             //console.log(data)
                             if (data == "true"){
                                 //登录成功
+                                text = "登录成功";
                                 location="/hello"
                             }else{
                                 text = "请输入正确的用户名和密码";
@@ -93,6 +94,10 @@
                             </div>
                             <div class="form-group">
                                 <label for="text">验证码：</label>
+
+                                <p><img id=image src="/captcha/{{.}}.png" alt="Captcha image"></p>
+
+
                                 <input type="text" class="form-control" id="log-vcode">
                             </div>
                             <p><strong id="logAlert"> </strong></p>
