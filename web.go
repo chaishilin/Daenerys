@@ -35,6 +35,7 @@ func main() {
 	mux.HandleFunc("/hello", classHandler)
 	mux.HandleFunc("/", logHandler)
 	mux.HandleFunc("/regist", registHandler)
+	mux.HandleFunc("/process",captchaVerify)
 	mux.Handle("/captcha/", captcha.Server(captcha.StdWidth, captcha.StdHeight))
 	server := &http.Server{
 		Addr:    ":18080",
@@ -46,6 +47,20 @@ func main() {
 
 
 }
+
+func captchaVerify(w  http.ResponseWriter, r *http.Request)  {
+
+	w.Header().Set("Content-Type","text/html;charset=utf-8")
+	if !captcha.VerifyString(r.FormValue("captchaId"),r.FormValue("captchaSolution")){
+		//fmt.Println("get false")
+		fmt.Fprint(w,"false")
+	}else{
+		//fmt.Println("get true")
+		fmt.Fprint(w,"true")
+	}
+
+}
+
 
 func classHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {

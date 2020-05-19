@@ -58,6 +58,7 @@ const formTemplateSrc = `<!doctype html>
 function setSrcQuery(e, q) {
 	var src  = e.src;
 	var p = src.indexOf('?');
+	console.log(src,p);
 	if (p >= 0) {
 		src = src.substr(0, p);
 	}

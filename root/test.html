@@ -38,6 +38,19 @@
 
         <!-- Tab panes -->
         <script>
+            function reloadVerify() {
+                var cap,src;
+                var reload = "reload=" + (new Date()).getTime();
+                cap = document.getElementById("cap-image");
+                src=cap.src;
+
+                var p = src.indexOf('?');
+                //console.log(src,p)
+                if (p >= 0) {
+                    src = src.substr(0, p);
+                }
+                cap.src = src + "?" + reload
+            }
             function pwdVerify() {
                 var pwd,name,text;
                 pwd = document.getElementById("log-pwd").value;
@@ -65,13 +78,18 @@
                 var vcode,text;
 
                 vcode = document.getElementById("log-vcode").value;
-
-                if (isNaN(vcode) || vcode< 1 || vcode>10){
-                    text = "验证码错误"
-                    document.getElementById("logAlert").innerHTML = text;
-                } else {
-                    pwdVerify()
-                }
+                $.post("/process",
+                    {
+                        captchaId:{{.}},
+                        captchaSolution:vcode
+                    },function (data) {
+                        if(data=="true"){
+                            text = "验证码错误";
+                            document.getElementById("logAlert").innerHTML = text;
+                        }else {
+                            pwdVerify()
+                        }
+                    })
             }
         </script>
 
@@ -83,7 +101,7 @@
                 <div class="card bg-dark text-white">
                     <div class="card-header">用户登录</div>
                     <div class="card-body">
-                        <form method="post" >
+                        <form method="post" action="/process">
                             <div class="form-group">
                                 <label for="username">用户名：</label>
                                 <input type="text" class="form-control" id="log-username">
@@ -95,7 +113,9 @@
                             <div class="form-group">
                                 <label for="text">验证码：</label>
 
-                                <p><img id=image src="/captcha/{{.}}.png" alt="Captcha image"></p>
+                                <p><img id=cap-image src="/captcha/{{.}}.png" alt="Captcha image">
+                                    <strong style="font-size: 20px" onclick="reloadVerify()">重新加载</strong>
+                                </p>
 
 
                                 <input type="text" class="form-control" id="log-vcode">
