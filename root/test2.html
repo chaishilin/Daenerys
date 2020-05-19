@@ -46,12 +46,38 @@
                 //如何把分类列表解析，最终得到多个卡片？
                 //多个卡片如何用ajax实现
                 //数据解析如何得到？数据格式是设么样
-                var text;
-                text = document.getElementById("classinfo").value;
-                console.log(text)
-                document.getElementById("classResult").innerHTML = text;
+                //var text;
+                //text = document.getElementById("classinfo").value;
+                //console.log(text)
+                //document.getElementById("classResult").innerHTML = text;
+                loadXMLDoc()
+
+            }
+            function loadXMLDoc()
+            {
+                var xmlhttp;
+                if (window.XMLHttpRequest)
+                {
+                    //  IE7+, Firefox, Chrome, Opera, Safari 浏览器执行代码
+                    xmlhttp=new XMLHttpRequest();
+                }
+                else
+                {
+                    // IE6, IE5 浏览器执行代码
+                    xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+                }
+                xmlhttp.onreadystatechange=function()
+                {
+                    if (xmlhttp.readyState==4 && xmlhttp.status==200)
+                    {
+                        document.getElementById("classTemp").innerHTML=xmlhttp.responseText;
+                    }
+                }
+                xmlhttp.open("GET","/template",true);
+                xmlhttp.send();
             }
         </script>
+
 
         <div class="tab-content">
             <div class="tab-pane active container" id="class">
@@ -66,40 +92,11 @@
                             <button type="button"class="btn btn-primary" onclick="classQuery()">查询</button>
                         </form>
                     </div>
-                </div>
-                <br>
-                <div class="row">
-                    <div class="col-sm-6 col-md-4">
-                <div class="card bg-secondary">
-                    <div class="card-header"><a class=card-link" href="#">电器</a></div>
-                    <div class="card-body"><a class=card-link" style="color: wheat" href="#" id="classResult"></a></div>
-                    <div class="card-body"><a class=card-link" style="color: wheat" href="#">家电</a></div>
-                    <div class="card-body"><a class=card-link" style="color: wheat" href="#">手机</a></div>
-                    <div class="card-body"><a class=card-link" href="#">配件</a></div>
-                </div>
-                        <br>
                     </div>
                 <br>
-                    <div class="col-sm-6 col-md-4">
-                <div class="card bg-secondary text-white">
-                    <div class="card-header"><a class=card-link" href="#">书籍</a></div>
-                    <div class="card-body"><a class=card-link" href="#">电子书</a></div>
-                    <div class="card-body"><a class=card-link" href="#">杂志</a></div>
-                    <div class="card-body"><a class=card-link" href="#">小说</a></div>
-                </div>
-                        <br>
-                    </div>
+                <div id = "classTemp">nothing yet</div>
 
-                    <div class="col-sm-6 col-md-4">
-                <div class="card bg-secondary text-white">
-                    <div class="card-header"><a  href="#">汽车</a></div>
-                    <div class="card-body"><a class=card-link" href="#">客车</a></div>
-                    <div class="card-body"><a class=card-link" href="#">货车</a></div>
-                    <div class="card-body"><a class=card-link" href="#">二手车</a></div>
-                    </div>
 
-                </div>
-                </div>
             </div>
 
             <div class="tab-pane container" id="goods">

@@ -40,6 +40,7 @@ func main() {
 	mux.HandleFunc("/regist", registHandler)
 	mux.HandleFunc("/process", captchaVerify)
 	mux.HandleFunc("/captcha/newId", newCapId)
+	mux.HandleFunc("/template", makeTemplate)
 	mux.Handle("/captcha/", captcha.Server(captcha.StdWidth, captcha.StdHeight))
 	server := &http.Server{
 		Addr:    ":18080",
@@ -62,6 +63,12 @@ func captchaVerify(w http.ResponseWriter, r *http.Request) {
 	} else {
 		fmt.Fprint(w, "true")
 	}
+}
+
+func makeTemplate(w http.ResponseWriter, r *http.Request)  {
+	file,_ := ioutil.ReadFile("./root/classTemplate.html")
+	fmt.Fprint(w,string(file))
+
 }
 
 func classHandler(w http.ResponseWriter, r *http.Request) {
