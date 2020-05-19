@@ -59,6 +59,16 @@ func CreateTables(conn *sql.DB){
 								engine=InnoDB default charset=utf8
 								`,"goodsTable")
 	CurdSql(conn, sqlCmd)
+
+	sqlCmd = fmt.Sprintf(`
+								create table IF NOT EXISTS %s(
+								user_id int auto_increment,
+								user_name varchar(20),
+								user_email varchar(50),
+								primary key(user_id))
+								engine=InnoDB default charset=utf8
+								`,"userInfo")
+	CurdSql(conn, sqlCmd)
 }
 
 func InsertRelate(conn *sql.DB,class_id int,pid int){
@@ -78,7 +88,14 @@ func InsertClass(conn *sql.DB,class_id int,class_name string,class_href string){
 									`, class_id,class_name,class_href)
 	CurdSql(conn, sqlCmd)
 }
-
+func InsertUser(conn *sql.DB,username string,email string){
+	sqlCmd := fmt.Sprintf(`insert into userInfo
+									(user_name,user_email)
+									values
+									('%s','%s')
+									`,username,email)
+	CurdSql(conn, sqlCmd)
+}
 func SelectSql(conn *sql.DB,sqlCmd string,args... interface{}) [][]string{
 	////查询所有
 	//SelectSql(conn,"select * from classTable")

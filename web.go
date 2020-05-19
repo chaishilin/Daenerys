@@ -2,6 +2,7 @@ package main
 
 import (
 	"./redis"
+	"./sqlgo"
 	"fmt"
 	"github.com/dchest/captcha"
 	"html/template"
@@ -28,14 +29,17 @@ const (
 						where a.class_id = b.class_id and 
 						a.class_name regexp '%s';`
 )
+
 var passwd string
+
 func main() {
 	passwd = os.Args[1:][0]
 	mux := http.NewServeMux()
 	mux.HandleFunc("/hello", classHandler)
 	mux.HandleFunc("/", logHandler)
 	mux.HandleFunc("/regist", registHandler)
-	mux.HandleFunc("/process",captchaVerify)
+	mux.HandleFunc("/process", captchaVerify)
+	mux.HandleFunc("/captcha/newId", newCapId)
 	mux.Handle("/captcha/", captcha.Server(captcha.StdWidth, captcha.StdHeight))
 	server := &http.Server{
 		Addr:    ":18080",
@@ -44,82 +48,74 @@ func main() {
 	if err := server.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
-
-
 }
 
-func captchaVerify(w  http.ResponseWriter, r *http.Request)  {
+func newCapId(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprint(w, captcha.New())
+}
 
-	w.Header().Set("Content-Type","text/html;charset=utf-8")
-	if !captcha.VerifyString(r.FormValue("captchaId"),r.FormValue("captchaSolution")){
-		//fmt.Println("get false")
-		fmt.Fprint(w,"false")
-	}else{
-		//fmt.Println("get true")
-		fmt.Fprint(w,"true")
+func captchaVerify(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html;charset=utf-8")
+	if !captcha.VerifyString(r.FormValue("captchaId"), r.FormValue("captchaSolution")) {
+		//每个CaptchaId只能校验一次
+		fmt.Fprint(w, "false")
+	} else {
+		fmt.Fprint(w, "true")
 	}
-
 }
-
 
 func classHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		file,_ := ioutil.ReadFile("./root/test2.html")
-		fmt.Fprintf(w,string(file))
-	}else if r.Method == "POST" {
+		file, _ := ioutil.ReadFile("./root/test2.html")
+		fmt.Fprintf(w, string(file))
+	} else if r.Method == "POST" {
 		r.ParseForm()
-		fmt.Fprint(w,3)
+		fmt.Fprint(w, 3)
 
 	}
 	/*
-	r.ParseForm()
+		r.ParseForm()
 
-	classList := []classes{}
-	conn := sqlgo.InitMySql()
-	//findAll := "select * from classTable"
-	query := r.Form.Get("input")
-	_, err := strconv.Atoi(query)
-	var result [][]string
-	if err != nil {
-		if len(query) > 0 {
-			result = sqlgo.SelectSql(conn, fmt.Sprintf(queryByName, fmt.Sprintf(".*%s.*", query))) //"'."+query+".'"
+		classList := []classes{}
+		conn := sqlgo.InitMySql()
+		//findAll := "select * from classTable"
+		query := r.Form.Get("input")
+		_, err := strconv.Atoi(query)
+		var result [][]string
+		if err != nil {
+			if len(query) > 0 {
+				result = sqlgo.SelectSql(conn, fmt.Sprintf(queryByName, fmt.Sprintf(".*%s.*", query))) //"'."+query+".'"
+			}
+		} else {
+			result = sqlgo.SelectSql(conn, queryById, query, query)
 		}
-	} else {
-		result = sqlgo.SelectSql(conn, queryById, query, query)
-	}
-	for _, v := range result {
-		intId, _ := strconv.Atoi(v[0])
-		classList = append(classList, classes{Id: intId, Name: v[1], Href: v[2]})
-	}
+		for _, v := range result {
+			intId, _ := strconv.Atoi(v[0])
+			classList = append(classList, classes{Id: intId, Name: v[1], Href: v[2]})
+		}
 
-	t, err := template.ParseFiles("./root/hello.html")
-	if err != nil {
-		w.WriteHeader(500)
-		fmt.Fprint(w, err)
-		return
-	}
+		t, err := template.ParseFiles("./root/hello.html")
+		if err != nil {
+			w.WriteHeader(500)
+			fmt.Fprint(w, err)
+			return
+		}
 
-	t.Execute(w, classList)
+		t.Execute(w, classList)
 
-	 */
+	*/
 
 }
 
 func logHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		CaptchaId := captcha.New()
-		t,_ := template.ParseFiles("./root/test.html")
-		t.Execute(w,CaptchaId)
-
-
-		//file,_ := ioutil.ReadFile("./root/test.html")
-		//fmt.Fprintf(w,string(file))
-	}else if r.Method == "POST" {
+		file, _ := ioutil.ReadFile("./root/test.html")
+		fmt.Fprintf(w, string(file))
+	} else if r.Method == "POST" {
 		r.ParseForm()
 		conn := redisconfirm.InitRedis(passwd)
 		logCheck := redisconfirm.LogCheck(&conn, r.Form.Get("name"), r.Form.Get("pwd"))
-		fmt.Fprint(w,logCheck)
-
+		fmt.Fprint(w, logCheck)
 	}
 }
 
@@ -127,13 +123,17 @@ func registHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		conn := redisconfirm.InitRedis(passwd)
 		r.ParseForm()
-		_, state, _ := redisconfirm.Register(&conn, r.Form.Get("username"), r.Form.Get("passwd"))
+		username := r.Form.Get("username")
+		passwd := r.Form.Get("passwd")
+		email_addr := r.Form.Get("email")
+		_, state, _ := redisconfirm.Register(&conn, username, passwd)
 		if state == redisconfirm.SetOk {
-			t, _ := template.ParseFiles("./root/log.html")
-			t.Execute(w, "")
+			fmt.Fprintf(w, "ok")
+			//使用mysql存入用户邮箱、用户名，密码
+			conn := sqlgo.InitMySql()
+			sqlgo.InsertUser(conn,username,email_addr)
 		} else {
-			t, _ := template.ParseFiles("./root/regist.html")
-			t.Execute(w, "用户名已被占用")
+			fmt.Fprintf(w, "exist")
 		}
 	} else if r.Method == "GET" {
 		t, _ := template.ParseFiles("./root/regist.html")
@@ -142,6 +142,6 @@ func registHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func doVerify(){
+func doVerify() {
 
 }

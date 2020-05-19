@@ -1,7 +1,7 @@
 package jdSpider
 
 import (
-	//"../sqlgo"
+	"../sqlgo"
 	"database/sql"
 	"fmt"
 	"regexp"
@@ -47,8 +47,8 @@ func DoSpider(htmlMsg string,conn *sql.DB) {
 
 		count++
 		fmt.Println("--", count, 0, string(titles[0][1]))
-		//sqlgo.InsertClass(conn,count,string(titles[0][1]),"")
-		//sqlgo.InsertRelate(conn,count,0)
+		sqlgo.InsertClass(conn,count,string(titles[0][1]),"")
+		sqlgo.InsertRelate(conn,count,0)
 
 		pid := count
 		dls := regexp.MustCompile(dlReg).FindAllString(each, -1)
@@ -59,15 +59,15 @@ func DoSpider(htmlMsg string,conn *sql.DB) {
 				for _, v := range dtresults {
 					count++
 					fmt.Println("----", count, pid, v[1], v[0])
-					//sqlgo.InsertClass(conn,count,v[1],v[0])
-					//sqlgo.InsertRelate(conn,count,pid)
+					sqlgo.InsertClass(conn,count,v[1],v[0])
+					sqlgo.InsertRelate(conn,count,pid)
 				}
 				dlresults, pid := findMatch(eachdl, ddReg, count)
 				for _, v := range dlresults {
 					count++
 					fmt.Println("--------", count, pid, v[1], v[0])
-					//sqlgo.InsertClass(conn,count,v[1],v[0])
-					//sqlgo.InsertRelate(conn,count,pid)
+					sqlgo.InsertClass(conn,count,v[1],v[0])
+					sqlgo.InsertRelate(conn,count,pid)
 				}
 			}(eachdl)
 		}

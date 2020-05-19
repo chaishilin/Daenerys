@@ -38,20 +38,48 @@
 
         <!-- Tab panes -->
         <script>
+            //log function
+            function getNewCapId() {
+                $.get("/captcha/newId",
+                    function (data) {
+                        //console.log("change ",capId,"to ",data)
+                        capId = data;
+                        document.getElementById("cap-image").src = "/captcha/"+capId+".png"
+                    }
+                )
+            }
             function reloadVerify() {
                 var cap,src;
                 var reload = "reload=" + (new Date()).getTime();
                 cap = document.getElementById("cap-image");
                 src=cap.src;
-
                 var p = src.indexOf('?');
-                //console.log(src,p)
                 if (p >= 0) {
                     src = src.substr(0, p);
                 }
                 cap.src = src + "?" + reload
             }
-            function pwdVerify() {
+            function capVerify() {
+                var vcode,text;
+                vcode = document.getElementById("log-vcode").value;
+                $.post("/process",
+                    {
+                        captchaId:capId,
+                        captchaSolution:vcode
+                    },function (data) {
+                        console.log(data)
+                        if(data!="true"){
+                            getNewCapId()
+                            text = "验证码错误";
+                        }else {
+                            text = "登录成功";
+                            location="/hello"
+                        }
+                        document.getElementById("logAlert").innerHTML = text;
+                    })
+            }
+            function logVerify() {
+                //console.log("pwdVerify")
                 var pwd,name,text;
                 pwd = document.getElementById("log-pwd").value;
                 name = document.getElementById("log-username").value;
@@ -64,9 +92,7 @@
                         function (data) {
                             //console.log(data)
                             if (data == "true"){
-                                //登录成功
-                                text = "登录成功";
-                                location="/hello"
+                                capVerify()
                             }else{
                                 text = "请输入正确的用户名和密码";
                             }
@@ -74,25 +100,48 @@
                         })
                 })
             }
-            function logVerify() {
-                var vcode,text;
-
-                vcode = document.getElementById("log-vcode").value;
-                $.post("/process",
-                    {
-                        captchaId:{{.}},
-                        captchaSolution:vcode
-                    },function (data) {
-                        if(data=="true"){
-                            text = "验证码错误";
-                            document.getElementById("logAlert").innerHTML = text;
-                        }else {
-                            pwdVerify()
-                        }
-                    })
-            }
+        </script>
+        <script>
+            getNewCapId()
+            var capId;
         </script>
 
+        <script>
+            //regist
+            function regist() {
+                var username,passwd,passwd2,email,vcode;
+                username = document.getElementById("regist-username").value;
+                passwd = document.getElementById("regist-pwd").value;
+                passwd2 = document.getElementById("regist-pwd2").value;
+                email = document.getElementById("regist-email").value;
+                if (passwd != passwd2){
+                    document.getElementById("registAlert").innerText = "密码不一致！";
+                }else if(!regexEmail(email)){
+                    document.getElementById("registAlert").innerText = "邮箱地址无效！";
+                }else{
+                    usernameVerify(username,passwd,email);
+                }
+            }
+            function usernameVerify(username,passwd,email) {
+                $.post('/regist',{
+                    username:username,
+                    passwd:passwd,
+                    email:email
+                },function (data) {
+                        if (data == "exist") {
+                            text = "用户名已被占用";
+                        } else {
+                            text = "注册成功！";
+                        }
+                    document.getElementById("registAlert").innerText = text;
+                    }
+                )
+            }
+            function regexEmail(email) {
+                re = /^[0-9a-zA-Z]+([\.-_0-9a-zA-Z])*@([a-zA-Z0-9]+\.)+[a-zA-Z0-9]{2,4}$/
+                return re.test(email)
+            }
+        </script>
         <br>
         <br>
         <br>
@@ -101,7 +150,7 @@
                 <div class="card bg-dark text-white">
                     <div class="card-header">用户登录</div>
                     <div class="card-body">
-                        <form method="post" action="/process">
+                        <form>
                             <div class="form-group">
                                 <label for="username">用户名：</label>
                                 <input type="text" class="form-control" id="log-username">
@@ -112,12 +161,9 @@
                             </div>
                             <div class="form-group">
                                 <label for="text">验证码：</label>
-
-                                <p><img id=cap-image src="/captcha/{{.}}.png" alt="Captcha image">
+                                <p><img id=cap-image src="" alt="Captcha image">
                                     <strong style="font-size: 20px" onclick="reloadVerify()">重新加载</strong>
                                 </p>
-
-
                                 <input type="text" class="form-control" id="log-vcode">
                             </div>
                             <p><strong id="logAlert"> </strong></p>
@@ -141,17 +187,14 @@
                             </div>
                             <div class="form-group">
                                 <label for="pwd">重复密码：</label>
-                                <input type="password" class="form-control" id="regist-pwd-2">
+                                <input type="password" class="form-control" id="regist-pwd2">
                             </div>
                             <div class="form-group">
                                 <label for="email">邮箱：</label>
                                 <input type="text" class="form-control" id="regist-email">
                             </div>
-                            <div class="form-group">
-                                <label for="vcode">验证码：</label>
-                                <input type="text" class="form-control" id="regist-vcode">
-                            </div>
-                            <button type="submit" class="btn btn-primary">提交信息</button>
+                            <p><strong id="registAlert"> </strong></p>
+                            <button type="button" class="btn btn-primary" onclick="regist()">提交信息</button>
                         </form>
                     </div>
                 </div>
@@ -159,22 +202,18 @@
 
             <div class="tab-pane container" id="iforgot">
                 <div class="card bg-dark text-white">
-                    <div class="card-header">找回密码</div>
+                    <div class="card-header">找回密码（功能未做）</div>
                     <div class="card-body">
                         <form>
                             <div class="form-group">
-                                <label for="username">用户名：</label>
-                                <input type="text" class="form-control" id="forgot-username">
-                            </div>
-                            <div class="form-group">
-                                <label for="email">邮箱：</label>
+                                <label for="email">请输入注册邮箱：</label>
                                 <input type="text" class="form-control" id="forgot-email">
                             </div>
                             <div class="form-group">
-                                <label for="vcode">验证码：</label>
+                                <label for="vcode">邮箱收到的验证码：</label>
                                 <input type="text" class="form-control" id="forgot-vcode">
                             </div>
-                            <button type="submit" class="btn btn-primary">提交信息</button>
+                            <button type="button" class="btn btn-primary" onclick="alert('该功能尚未完成')">提交信息</button>
                         </form>
                     </div>
                 </div>

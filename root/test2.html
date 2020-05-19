@@ -43,6 +43,9 @@
 
         <script>
             function classQuery() {
+                //如何把分类列表解析，最终得到多个卡片？
+                //多个卡片如何用ajax实现
+                //数据解析如何得到？数据格式是设么样
                 var text;
                 text = document.getElementById("classinfo").value;
                 console.log(text)
@@ -120,11 +123,11 @@
                         <form>
                             <div class="form-group">
                                 <label for="username">用户名：</label>
-                                <input type="username" class="form-control" id="username">
+                                <a id="username">username</a>
                             </div>
                             <div class="form-group">
                                 <label for="email">邮箱：</label>
-                                <input type="email" class="form-control" id="email">
+                                <a id="email">email</a>
                             </div>
                             <div class="form-group">
                                 <label for="vcode">原密码：</label>
@@ -135,7 +138,7 @@
                                 <input type="vcode" class="form-control" id="vcode">
                             </div>
                             <button type="button"class="btn btn-primary">确认修改</button>
-                            <button type="button"class="btn btn-primary">退出登录</button>
+                            <button type="button"class="btn btn-primary"  onclick="location='/'">退出登录</button>
                         </form>
                     </div>
                 </div>
