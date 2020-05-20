@@ -10,12 +10,13 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
+
 )
 
-type classes struct {
+type classInfo struct {
 	Name string
 	Id   int
-	Pid  int
 	Href string
 }
 
@@ -41,6 +42,8 @@ func main() {
 	mux.HandleFunc("/process", captchaVerify)
 	mux.HandleFunc("/captcha/newId", newCapId)
 	mux.HandleFunc("/template", makeTemplate)
+	mux.Handle("/static/", http.StripPrefix("/static", http.FileServer(http.Dir("./root/static"))))
+
 	mux.Handle("/captcha/", captcha.Server(captcha.StdWidth, captcha.StdHeight))
 	server := &http.Server{
 		Addr:    ":18080",
@@ -50,6 +53,8 @@ func main() {
 		log.Fatal(err)
 	}
 }
+
+
 
 func newCapId(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, captcha.New())
@@ -66,8 +71,35 @@ func captchaVerify(w http.ResponseWriter, r *http.Request) {
 }
 
 func makeTemplate(w http.ResponseWriter, r *http.Request)  {
-	file,_ := ioutil.ReadFile("./root/classTemplate.html")
-	fmt.Fprint(w,string(file))
+
+	r.ParseForm()
+	classList := []classInfo{}
+	conn := sqlgo.InitMySql()
+	//findAll := "select * from classTable"
+	query := r.Form.Get("input")
+	_, err := strconv.Atoi(query)
+	var result [][]string
+	if err != nil {
+		if len(query) > 0 {
+			result = sqlgo.SelectSql(conn, fmt.Sprintf(queryByName, fmt.Sprintf(".*%s.*", query))) //"'."+query+".'"
+		}
+	} else {
+		result = sqlgo.SelectSql(conn, queryById, query, query)
+	}
+	for _, v := range result {
+		intId, _ := strconv.Atoi(v[0])
+		classList = append(classList, classInfo{Id: intId, Name: v[1], Href: v[2]})
+	}
+
+	t, err := template.ParseFiles("./root/classTemplate.html")
+	if err != nil {
+		w.WriteHeader(500)
+		fmt.Fprint(w, err)
+		return
+	}
+	t.Execute(w, classList)
+
+
 
 }
 
@@ -80,37 +112,6 @@ func classHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, 3)
 
 	}
-	/*
-		r.ParseForm()
-
-		classList := []classes{}
-		conn := sqlgo.InitMySql()
-		//findAll := "select * from classTable"
-		query := r.Form.Get("input")
-		_, err := strconv.Atoi(query)
-		var result [][]string
-		if err != nil {
-			if len(query) > 0 {
-				result = sqlgo.SelectSql(conn, fmt.Sprintf(queryByName, fmt.Sprintf(".*%s.*", query))) //"'."+query+".'"
-			}
-		} else {
-			result = sqlgo.SelectSql(conn, queryById, query, query)
-		}
-		for _, v := range result {
-			intId, _ := strconv.Atoi(v[0])
-			classList = append(classList, classes{Id: intId, Name: v[1], Href: v[2]})
-		}
-
-		t, err := template.ParseFiles("./root/hello.html")
-		if err != nil {
-			w.WriteHeader(500)
-			fmt.Fprint(w, err)
-			return
-		}
-
-		t.Execute(w, classList)
-
-	*/
 
 }
 
@@ -147,8 +148,4 @@ func registHandler(w http.ResponseWriter, r *http.Request) {
 		t.Execute(w, "")
 
 	}
-}
-
-func doVerify() {
-
 }

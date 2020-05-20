@@ -8,6 +8,7 @@
     <script src="https://cdn.staticfile.org/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://cdn.staticfile.org/popper.js/1.15.0/umd/popper.min.js"></script>
     <script src="https://cdn.staticfile.org/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="/static/queryPage.js"></script>
 
     <title>Title</title>
 </head>
@@ -41,42 +42,6 @@
         <br>
         <br>
 
-        <script>
-            function classQuery() {
-                //如何把分类列表解析，最终得到多个卡片？
-                //多个卡片如何用ajax实现
-                //数据解析如何得到？数据格式是设么样
-                //var text;
-                //text = document.getElementById("classinfo").value;
-                //console.log(text)
-                //document.getElementById("classResult").innerHTML = text;
-                loadXMLDoc()
-
-            }
-            function loadXMLDoc()
-            {
-                var xmlhttp;
-                if (window.XMLHttpRequest)
-                {
-                    //  IE7+, Firefox, Chrome, Opera, Safari 浏览器执行代码
-                    xmlhttp=new XMLHttpRequest();
-                }
-                else
-                {
-                    // IE6, IE5 浏览器执行代码
-                    xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
-                }
-                xmlhttp.onreadystatechange=function()
-                {
-                    if (xmlhttp.readyState==4 && xmlhttp.status==200)
-                    {
-                        document.getElementById("classTemp").innerHTML=xmlhttp.responseText;
-                    }
-                }
-                xmlhttp.open("GET","/template",true);
-                xmlhttp.send();
-            }
-        </script>
 
 
         <div class="tab-content">
@@ -94,7 +59,7 @@
                     </div>
                     </div>
                 <br>
-                <div id = "classTemp">nothing yet</div>
+                <div id = "classTemp"></div>
 
 
             </div>

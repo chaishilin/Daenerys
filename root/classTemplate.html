@@ -1,33 +1,14 @@
 <!-- 修改为模板，go web中传入参数-->
+
 <div class="row">
+
+    {{ range .}}
     <div class="col-sm-6 col-md-4">
         <div class="card bg-secondary">
-            <div class="card-header"><a class=card-link" href="#">电器</a></div>
-            <div class="card-body"><a class=card-link" style="color: wheat" href="#" id="classResult"></a></div>
-            <div class="card-body"><a class=card-link" style="color: wheat" href="#">家电</a></div>
-            <div class="card-body"><a class=card-link" style="color: wheat" href="#">手机</a></div>
-            <div class="card-body"><a class=card-link" href="#">配件</a></div>
+            <div class="card-header"><a class="card-link" style="color: wheat" href={{.Href}}>{{ .Name}}</a></div>
+            <div class="card-body"><a style="color: wheat">分类id:{{.Id}}</a></div>            <br>
         </div>
-        <br>
     </div>
-    <br>
-    <div class="col-sm-6 col-md-4">
-        <div class="card bg-secondary text-white">
-            <div class="card-header"><a class=card-link" href="#">书籍</a></div>
-            <div class="card-body"><a class=card-link" href="#">电子书</a></div>
-            <div class="card-body"><a class=card-link" href="#">杂志</a></div>
-            <div class="card-body"><a class=card-link" href="#">小说</a></div>
-        </div>
-        <br>
-    </div>
+    {{end}}
 
-    <div class="col-sm-6 col-md-4">
-        <div class="card bg-secondary text-white">
-            <div class="card-header"><a  href="#">汽车</a></div>
-            <div class="card-body"><a class=card-link" href="#">客车</a></div>
-            <div class="card-body"><a class=card-link" href="#">货车</a></div>
-            <div class="card-body"><a class=card-link" href="#">二手车</a></div>
-        </div>
-
-    </div>
 </div>

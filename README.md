@@ -7,7 +7,7 @@
 * 实例网页可在[Daenerys](http://154.8.143.128:18080)访问
 
 ### 项目体系    
-![](./root/struct2.png)
+![](root/static/struct2.png)
 
 
 ### 爬虫 jdSpider
@@ -18,7 +18,7 @@
 ### MySQL数据库 sqlgo
 * InnoDB引擎，更高粒度的锁，更好的并发性能
 * 数据库结构
-![](./root/db2.png)
+![](root/static/db2.png)
 * 建表语句
     * 分类目录
     
@@ -51,9 +51,9 @@
 ### 服务端 web.go
 * golang，暂不借助其他框架
 * 完成京东分类目录界面
-![](./root/jdClass.png)
+![](root/static/jdClass.png)
 * 实现根据分类id或分类名称进行查询
-    ![根据分类id或分类名称进行查询](./root/jdClass2.png)
+    ![根据分类id或分类名称进行查询](root/static/jdClass2.png)
    
 * 查询语句
     * queryById  
