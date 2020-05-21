@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"regexp"
+	"sync"
 )
 
 const (
@@ -39,6 +40,7 @@ func main() {
 
  */
 func DoSpider(htmlMsg string,conn *sql.DB) {
+	var wg sync.WaitGroup
 	items := regexp.MustCompile(itemReg).FindAllString(htmlMsg, -1)
 
 	for _, each := range items {
@@ -65,13 +67,20 @@ func DoSpider(htmlMsg string,conn *sql.DB) {
 				dlresults, pid := findMatch(eachdl, ddReg, count)
 				for _, v := range dlresults {
 					count++
-					fmt.Println("--------", count, pid, v[1], v[0])
-					sqlgo.InsertClass(conn,count,v[1],v[0])
+					href := v[0]
+					if href[:6] != "https:"{
+						href =  "https:"+href
+					}
+					//fmt.Println("--------", count, pid, v[1], href)
+					sqlgo.InsertClass(conn,count,v[1],href)
 					sqlgo.InsertRelate(conn,count,pid)
+					wg.Add(1)
+					go GetGood(href,count,&wg)
 				}
 			}(eachdl)
 		}
 	}
+	wg.Wait()
 	fmt.Println(count)
 }
 
