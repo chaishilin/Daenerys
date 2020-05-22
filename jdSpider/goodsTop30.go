@@ -3,8 +3,10 @@ package jdSpider
 import (
 	"../sqlgo"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -29,9 +31,9 @@ func main() {
 }
 */
 
-func GetGood(href string,pid int,pwg *sync.WaitGroup){
+func GetGood(href string,pid int,pwg *sync.WaitGroup,mu *sync.Mutex){
 	defer pwg.Done()
-	getClassDetal(href,pid)
+	getClassDetal(href,pid,mu)
 	/*
 	itemHref := getClassDetal(href,pid)
 	count := 0
@@ -43,7 +45,7 @@ func GetGood(href string,pid int,pwg *sync.WaitGroup){
 	 */
 }
 
-func getClassDetal(href string,pid int) []string{
+func getClassDetal(href string,pid int,mu *sync.Mutex) []string{
 	//href := "https://list.jd.com/list.html?cat=9987,830,13661"
 	hrefList := []string{}
 	defer func() {
@@ -54,12 +56,21 @@ func getClassDetal(href string,pid int) []string{
 
 	resp,err:=http.Get(href)
 	if err != nil {
-		fmt.Printf("can not open page %s\n",href)
+		ctopen := fmt.Sprintf("can not open page %s\n",href)
+		mu.Lock()
+		file,_ := os.OpenFile("./out.txt",os.O_WRONLY|os.O_CREATE|os.O_APPEND,0666)
+		io.WriteString(file,ctopen)
+		mu.Unlock()
+
 		return hrefList
 	}
 	bBody,err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Printf("can not ReadAll page %s\n",href)
+		ctread:=fmt.Sprintf("can not ReadAll page %s\n",href)
+		mu.Lock()
+		file,_ := os.OpenFile("./out.txt",os.O_WRONLY|os.O_CREATE|os.O_APPEND,0666)
+		io.WriteString(file,ctread)
+		mu.Unlock()
 		return hrefList
 	}
 	body := string(bBody)
@@ -95,7 +106,11 @@ func getClassDetal(href string,pid int) []string{
 		}
 	}
 	if len(goodList) == 0{
-			fmt.Println("can NOT match",href)
+			ctmatch := fmt.Sprintf("can NOT match %s \n",href)
+			mu.Lock()
+			file,_ := os.OpenFile("./out.txt",os.O_WRONLY|os.O_CREATE|os.O_APPEND,0666)
+			io.WriteString(file,ctmatch)
+			mu.Unlock()
 	}
 	return hrefList
 }

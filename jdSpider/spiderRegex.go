@@ -41,6 +41,7 @@ func main() {
  */
 func DoSpider(htmlMsg string,conn *sql.DB) {
 	var wg sync.WaitGroup
+	var mu sync.Mutex
 	items := regexp.MustCompile(itemReg).FindAllString(htmlMsg, -1)
 
 	for _, each := range items {
@@ -75,7 +76,7 @@ func DoSpider(htmlMsg string,conn *sql.DB) {
 					sqlgo.InsertClass(conn,count,v[1],href)
 					sqlgo.InsertRelate(conn,count,pid)
 					wg.Add(1)
-					go GetGood(href,count,&wg)
+					go GetGood(href,count,&wg,&mu)
 				}
 			}(eachdl)
 		}

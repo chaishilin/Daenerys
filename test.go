@@ -1,11 +1,9 @@
 package main
 
 import (
-	"./jdSpider"
-	"./sqlgo"
-	"fmt"
-	"strconv"
-	"sync"
+	"io"
+
+	"os"
 )
 
 
@@ -25,9 +23,13 @@ func main(){
 	where a.class_id = b.class_id and a.class_id = 212;
 	 */
 
-	s,_ := strconv.ParseInt("34",10,64)
-	fmt.Printf("%v,%v",s,int(s))
+	s := []string{"123421\n","asfdfds\n","2dw"}
+	file,_ := os.OpenFile("./out.txt",os.O_WRONLY|os.O_CREATE|os.O_APPEND,0666)
+	for _,ss:= range s{
+		io.WriteString(file,ss)
 
+	}
+	/*
 	var pwg sync.WaitGroup
 	//href := "https://list.jd.com/list.html?cat=6144,12041,12049"
 	href := "https://list.jd.com/list.html?cat=1672,2615,9186"
@@ -40,6 +42,8 @@ func main(){
 	go jdSpider.GetGood(href,0,&pwg)
 	pwg.Wait()
 	fmt.Println("over")
+
+	 */
 
 
 

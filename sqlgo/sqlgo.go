@@ -119,6 +119,7 @@ func InsertUser(conn *sql.DB,username string,email string){
 func SelectSql(conn *sql.DB,sqlCmd string,args... interface{}) [][]string{
 	////查询所有
 	//SelectSql(conn,"select * from classTable")
+
 	rows, err := conn.Query(sqlCmd,args...)
 	if err != nil {
 		fmt.Println("Query error ",err.Error())
