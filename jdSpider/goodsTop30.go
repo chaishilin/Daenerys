@@ -51,7 +51,7 @@ func GetGoodsIntr(){
 	result := sqlgo.SelectSql(getGidGhref)
 	fmt.Println(len(result))
 	for k,v:= range result{
-		time.Sleep(100*time.Millisecond)
+		time.Sleep(1*time.Millisecond)
 		introJson,_ := json.Marshal(GetGoodDetal(v[1]))
 		sqlgo.InsertGoodIntro(v[0],string(introJson))
 		fmt.Println("id :",k)
