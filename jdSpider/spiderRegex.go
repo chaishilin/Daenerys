@@ -2,7 +2,6 @@ package jdSpider
 
 import (
 	"../sqlgo"
-	"database/sql"
 	"fmt"
 	"regexp"
 	"sync"
@@ -17,29 +16,9 @@ const (
 	infoReg  = `<a href="([\/\.\?\-,=&_0-9a-zA-Z]+)"[^>]*>([^<]+)</a>`
 )
 
-//select a.class_id,b.pid,a.class_name from classTable as a join classRelate as b where a.class_id = b.class_id and b.pid = 1108;
-
 var count = 0
 
-// 能不能把count改成管道？
-
-
-//var conn *sql.DB
-/*
-func main() {
-	url := "https://www.jd.com/allSort.aspx"
-	resp, _ := http.Get(url)
-	b, _ := ioutil.ReadAll(resp.Body)
-	s := fmt.Sprintf("%s", b)
-	resp.Body.Close()
-	conn = sqlgo.InitMySql()
-	sqlgo.CreateTables(conn)
-	doSpider(s)
-
-}
-
- */
-func DoSpider(htmlMsg string,conn *sql.DB) {
+func DoSpider(htmlMsg string) {
 	var wg sync.WaitGroup
 	var mu sync.Mutex
 	items := regexp.MustCompile(itemReg).FindAllString(htmlMsg, -1)
@@ -50,8 +29,8 @@ func DoSpider(htmlMsg string,conn *sql.DB) {
 
 		count++
 		fmt.Println("--", count, 0, string(titles[0][1]))
-		sqlgo.InsertClass(conn,count,string(titles[0][1]),"")
-		sqlgo.InsertRelate(conn,count,0)
+		sqlgo.InsertClass(count,string(titles[0][1]),"")
+		sqlgo.InsertRelate(count,0)
 
 		pid := count
 		dls := regexp.MustCompile(dlReg).FindAllString(each, -1)
@@ -62,8 +41,8 @@ func DoSpider(htmlMsg string,conn *sql.DB) {
 				for _, v := range dtresults {
 					count++
 					fmt.Println("----", count, pid, v[1], v[0])
-					sqlgo.InsertClass(conn,count,v[1],v[0])
-					sqlgo.InsertRelate(conn,count,pid)
+					sqlgo.InsertClass(count,v[1],v[0])
+					sqlgo.InsertRelate(count,pid)
 				}
 				dlresults, pid := findMatch(eachdl, ddReg, count)
 				for _, v := range dlresults {
@@ -73,8 +52,8 @@ func DoSpider(htmlMsg string,conn *sql.DB) {
 						href =  "https:"+href
 					}
 					//fmt.Println("--------", count, pid, v[1], href)
-					sqlgo.InsertClass(conn,count,v[1],href)
-					sqlgo.InsertRelate(conn,count,pid)
+					sqlgo.InsertClass(count,v[1],href)
+					sqlgo.InsertRelate(count,pid)
 					wg.Add(1)
 					go GetGood(href,count,&wg,&mu)
 				}

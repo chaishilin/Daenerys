@@ -71,12 +71,14 @@
                         <form>
                             <div class="form-group">
                                 <label for="username">输入查询的商品id或名称(如'1','iPhone'等)：</label>
-                                <input type="username" class="form-control" id="username">
+                                <input type="username" class="form-control" id="goodsInfo">
                             </div>
-                            <button type="button"class="btn btn-primary">查询</button>
+                            <button type="button"class="btn btn-primary" onclick="goodsQuery()"> 查询</button>
                         </form>
                     </div>
                 </div>
+                <br>
+                <div id = "goodsTemp"></div>
             </div>
             <div class="tab-pane container" id="user">
                 <div class="card bg-dark text-white">

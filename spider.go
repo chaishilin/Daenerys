@@ -24,10 +24,12 @@ func main() {
 	resp.Body.Close()
 
 
-	conn := sqlgo.InitMySql()
-	sqlgo.DelAll(conn)
-	sqlgo.CreateTables(conn)
-	jdSpider.DoSpider(s,conn)
+
+	sqlgo.DelAll()
+	sqlgo.CreateTables()
+	jdSpider.DoSpider(s)
+
+	jdSpider.GetGoodsIntr()
 
 	/*
 	result := sqlgo.SelectSql(conn,"select * from classTable")

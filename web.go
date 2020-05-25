@@ -10,25 +10,49 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sort"
 	"strconv"
-
 )
 
-type classInfo struct {
-	Name string
-	Id   int
-	Href string
+type goodsInfo struct {
+	Gname  string
+	Gid    int
+	Ghref  string
+	Gprice float64
+	Gjson string
 }
+type classInfo struct {
+	Name      string
+	Id        int
+	Href      string
+	GoodsList []goodsInfo
+}
+type classInfoList []classInfo
+
+func (cList classInfoList) Len() int {return len(cList)}
+func (cList classInfoList) Swap(i,j int) {cList[i],cList[j] = cList[j],cList[i]}
+func (cList classInfoList)  Less(i,j int) bool {return len(cList[i].GoodsList) < len(cList[j].GoodsList)}
 
 const (
-	queryById = `select a.class_id,a.class_name,a.class_href 
+	queryClassById = `select a.class_id,a.class_name,a.class_href 
 					from classTable as a join classRelate as b 
 					where a.class_id = b.class_id and 
 					(b.pid = ? or b.class_id = ?);`
-	queryByName = `select a.class_id,a.class_name,a.class_href 
+	queryClassByName = `select a.class_id,a.class_name,a.class_href 
 						from classTable as a join classRelate as b 
 						where a.class_id = b.class_id and 
 						a.class_name regexp '%s';`
+	SelectGoodsbyClassId = `select a.goods_id,a.goods_name,a.goods_href,a.goods_price 
+							from goodsTable as a 
+							where a.class_id = ?`
+	queryGoodsById = `select a.goods_id,a.goods_name,a.goods_href,a.goods_price,b.intro
+							from goodsTable as a left join goodsIntro as b
+							on a.goods_id = b.goods_id 
+							where a.goods_id = ?`
+	queryGoodsByName = `select a.goods_id,a.goods_name,a.goods_href,a.goods_price,b.intro
+							from goodsTable as a left join goodsIntro as b
+							on a.goods_id = b.goods_id 
+							where a.goods_name regexp '%s'`
 )
 
 var passwd string
@@ -54,8 +78,6 @@ func main() {
 	}
 }
 
-
-
 func newCapId(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, captcha.New())
 }
@@ -70,38 +92,102 @@ func captchaVerify(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func makeTemplate(w http.ResponseWriter, r *http.Request)  {
+func makeTemplate(w http.ResponseWriter, r *http.Request) {
 
 	r.ParseForm()
-	classList := []classInfo{}
-	conn := sqlgo.InitMySql()
-	//findAll := "select * from classTable"
+
+	qType := r.Form.Get("type")
 	query := r.Form.Get("input")
-	_, err := strconv.Atoi(query)
-	var result [][]string
-	if err != nil {
-		if len(query) > 0 {
-			result = sqlgo.SelectSql(conn, fmt.Sprintf(queryByName, fmt.Sprintf(".*%s.*", query))) //"'."+query+".'"
+	if qType == "class"{
+		_, err := strconv.Atoi(query)
+		var result [][]string
+		if err != nil {
+			if len(query) > 0 {
+				result = sqlgo.SelectSql(fmt.Sprintf(queryClassByName, fmt.Sprintf(".*%s.*", query))) //"'."+query+".'"
+			}
+		} else {
+			result = sqlgo.SelectSql(queryClassById, query, query)
 		}
-	} else {
-		result = sqlgo.SelectSql(conn, queryById, query, query)
+		classList := makeClassInfo(result)
+		t, err := template.ParseFiles("./root/classTemplate.html")
+		if err != nil {
+			w.WriteHeader(500)
+			fmt.Fprint(w, err)
+			return
+		}
+		t.Execute(w, classList)
+	}else if qType == "goods"{
+		_, err := strconv.Atoi(query)
+		var result [][]string
+		if err != nil {
+			if len(query) > 0 {
+				result = sqlgo.SelectSql(fmt.Sprintf(queryGoodsByName, fmt.Sprintf(".*%s.*", query))) //"'."+query+".'"
+			}
+		} else {
+			result = sqlgo.SelectSql(queryGoodsById, query)
+		}
+		goodsList := makeGoodsInfo(result)
+		t, err := template.ParseFiles("./root/goodsTemplate.html")
+		if err != nil {
+			w.WriteHeader(500)
+			fmt.Fprint(w, err)
+			return
+		}
+		t.Execute(w, goodsList)
 	}
-	for _, v := range result {
-		intId, _ := strconv.Atoi(v[0])
-		classList = append(classList, classInfo{Id: intId, Name: v[1], Href: v[2]})
-	}
-
-	t, err := template.ParseFiles("./root/classTemplate.html")
-	if err != nil {
-		w.WriteHeader(500)
-		fmt.Fprint(w, err)
-		return
-	}
-	t.Execute(w, classList)
-
-
 
 }
+
+func makeGoodsInfo(result [][]string) []goodsInfo{
+	goodsList := []goodsInfo{}
+	for _, k := range result {
+		goodInfo := goodsInfo{}
+		gId, _ := strconv.Atoi(k[0])
+		goodInfo.Gid = gId
+		goodInfo.Gname = k[1]
+		goodInfo.Ghref = k[2]
+		gPrice, _ := strconv.ParseFloat(k[3], 64)
+		goodInfo.Gprice = gPrice
+		goodInfo.Gjson = k[4]
+		goodsList = append(goodsList, goodInfo)
+	}
+	return goodsList
+}
+
+func makeClassInfo(result [][]string) []classInfo {
+	 var classList classInfoList
+
+	for _, v := range result {
+		classItem := classInfo{}
+		cId, _ := strconv.Atoi(v[0])
+		classItem.Id = cId
+		classItem.Name = v[1]
+		classItem.Href = v[2]
+
+		goodItems := sqlgo.SelectSql(SelectGoodsbyClassId, cId)
+		count := 0
+		for _, k := range goodItems {
+			goodInfo := goodsInfo{}
+			gId, _ := strconv.Atoi(k[0])
+			goodInfo.Gid = gId
+			goodInfo.Gname = k[1]
+			goodInfo.Ghref = k[2]
+			gPrice, _ := strconv.ParseFloat(k[3], 64)
+			goodInfo.Gprice = gPrice
+			classItem.GoodsList = append(classItem.GoodsList, goodInfo)
+			count ++
+			if count >= 10{
+				break
+			}
+		}
+
+		classList = append(classList, classItem)
+	}
+	sort.Sort(sort.Reverse(classList))
+	return classList
+}
+
+
 
 func classHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
@@ -138,8 +224,7 @@ func registHandler(w http.ResponseWriter, r *http.Request) {
 		if state == redisconfirm.SetOk {
 			fmt.Fprintf(w, "ok")
 			//使用mysql存入用户邮箱、用户名，密码
-			conn := sqlgo.InitMySql()
-			sqlgo.InsertUser(conn,username,email_addr)
+			sqlgo.InsertUser(username, email_addr)
 		} else {
 			fmt.Fprintf(w, "exist")
 		}

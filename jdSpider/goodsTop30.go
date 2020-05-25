@@ -2,6 +2,7 @@ package jdSpider
 
 import (
 	"../sqlgo"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -11,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 )
 
 const (
@@ -20,30 +22,45 @@ const (
 	goodName = `<div class="p-name p-name-type-3">[\s\S]*<em>(<.*>)?([\S\s]*)</em>[\n.\s\S]*</div>`
 	goodPtable = `<div class="Ptable-item">[\s\S]*?</div>`
 	goodPackage = `<div class="package-list">[\s\S]*?</div>`
+	goodParameter = `<ul class="parameter2 p-parameter-list">[\s\S]*?</ul>`
 )
-
+const (
+	getGidGhref = `select goods_id,goods_href from goodsTable`
+)
 /*
 func main() {
 
 	href := "https://list.jd.com/list.html?cat=1672,2577,3997"
 	getGood(href)
+	getGoodDetal
 
 }
-*/
+
+
+ */
 
 func GetGood(href string,pid int,pwg *sync.WaitGroup,mu *sync.Mutex){
 	defer pwg.Done()
+	//getClassDetal(href,pid,mu)
 	getClassDetal(href,pid,mu)
-	/*
-	itemHref := getClassDetal(href,pid)
-	count := 0
-
-	for _,item := range itemHref{
-		getGoodDetal(item)
-		count ++
-	}
-	 */
 }
+
+func GetGoodsIntr(){
+
+
+	result := sqlgo.SelectSql(getGidGhref)
+	fmt.Println(len(result))
+	for k,v:= range result{
+		time.Sleep(100*time.Millisecond)
+		introJson,_ := json.Marshal(GetGoodDetal(v[1]))
+		sqlgo.InsertGoodIntro(v[0],string(introJson))
+		fmt.Println("id :",k)
+
+	}
+
+
+}
+
 
 func getClassDetal(href string,pid int,mu *sync.Mutex) []string{
 	//href := "https://list.jd.com/list.html?cat=9987,830,13661"
@@ -99,9 +116,7 @@ func getClassDetal(href string,pid int,mu *sync.Mutex) []string{
 			itemHref := string(hrefResult[0][1])
 			//fmt.Println("name: ",itemName,"price: ",itemPriceFloat,"href: ", itemHref[:10])
 
-			conn := sqlgo.InitMySql()
-
-			sqlgo.InsertGood(conn,pid,itemName,itemPriceFloat,itemHref)
+			sqlgo.InsertGood(pid,itemName,itemPriceFloat,itemHref)
 			hrefList = append(hrefList,itemHref)
 		}
 	}
@@ -114,53 +129,82 @@ func getClassDetal(href string,pid int,mu *sync.Mutex) []string{
 	}
 	return hrefList
 }
-func getGoodDetal(href string){
-	//href := <- hrefChan
-
+func GetGoodDetal(href string) map[string]interface{} {
+	var information map[string]interface{}
+	information = make(map[string]interface{})
 	if href[:6] != "https:"{
 		href =  "https:"+href
 	}
 	resp,err:=http.Get(href)
 	if err != nil {
 		fmt.Printf("can't open page %s\n",href)
-		return
+		return information
 	}
 	bBody,err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
 		fmt.Printf("can't Read page %s\n",href)
-		return
+		return information
 	}
 
 	body := string(bBody)
 	resp.Body.Close()
 
-	ptableList := regexp.MustCompile(goodPtable).FindAllString(body,-1)
-	for _,item := range ptableList{
-		paserItem(item)
-	}
-	packageList := regexp.MustCompile(goodPackage).FindAllString(body,-1)
-	if len(packageList) == 0 {
-		//fmt.Println("packageList : 0")
-	}else{
-		paserItem(packageList[0])
+	parameterList := regexp.MustCompile(goodParameter).FindAllString(body,-1)
+	if len(parameterList) > 0 {
+		paserIntro(parameterList[0],information)
 	}
 
+	ptableList := regexp.MustCompile(goodPtable).FindAllString(body,-1)
+	for _,item := range ptableList{
+		paserPackage(item,information)
+	}
+	packageList := regexp.MustCompile(goodPackage).FindAllString(body,-1)
+	if len(packageList) > 0 {
+		paserPackage(packageList[0],information)
+	}
+	//fmt.Println(information)
+	return information
 }
-func paserItem(str string){
-	fmt.Println("=======paserItem==========")
+
+func paserIntro(str string,info map[string]interface{}){
+	//fmt.Println("title:商品介绍")
+	liReg := regexp.MustCompile(`<li title=[\s\S]*?>(.*)</li>`).FindAllStringSubmatch(str,-1)
+	for _,li := range(liReg){
+		kv := strings.Split(li[1],"：")
+		havA,_ := regexp.MatchString(`<a[\s\S]*?</a>`,kv[1])
+		if havA == true{
+			result := regexp.MustCompile(`<a[\s\S]*?>(.*)</a>`).FindAllStringSubmatch(kv[1],1)
+			info[kv[0]] = result[0][1]
+		}else{
+			info[kv[0]] = kv[1]
+		}
+
+	}
+}
+
+func paserPackage(str string,info map[string]interface{}){
+	//fmt.Println("=======paserItem==========")
 	h3Reg := regexp.MustCompile(`<h3>(.*)</h3>`).FindAllStringSubmatch(str,-1)
 	title := h3Reg[0][1]
-	fmt.Println("title:",title)
+
+	//fmt.Println("title:",title)
 	dlReg := regexp.MustCompile(`<dt>(.*)</dt><dd>(.*)</dd>`).FindAllStringSubmatch(str,-1)
-	for _,dl := range(dlReg){
-		fmt.Println(dl[1],dl[2])
+	if len(dlReg) > 0 {
+		var dlmap map[string]string
+		dlmap = make(map[string]string)
+		for _,dl := range(dlReg){
+			//fmt.Println(dl[1],dl[2])
+			dlmap[dl[1]] = dl[2]
+		}
+		info[title]=dlmap
 	}
+
 	pReg := regexp.MustCompile(`<p>([\s\S]*)</p>`).FindAllStringSubmatch(str,-1)
 	if len(pReg) > 0{
 		p := pReg[0][1]
 		p = strings.Replace(p," ","",-1)
-		fmt.Println(p)
+		info["包装清单"]=p
 	}
-
 }
+

@@ -101,6 +101,8 @@
 	* 分类管理
 		* 分类id或分类名称查询
 		* ajxa加载模板，生成各分类信息（未完成）
+		select b.class_name,left(a.goods_name,10),a.goods_price from goodsTable as a join classTable as b where b.class_name regexp '水' and b.class_id = a.class_id;
+
 	* 商品管理（未完成）
 	* 用户管理（未完成）
 

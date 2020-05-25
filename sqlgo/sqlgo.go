@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
+	"strconv"
 )
 
 const(
@@ -27,14 +28,15 @@ func InitMySql() *sql.DB {
 	return conn
 }
 
-func DelAll(conn *sql.DB){
-	CurdSql(conn, "drop table classRelate")
-	CurdSql(conn, "drop table goodsTable")
-	CurdSql(conn, "drop table classTable")
-	CurdSql(conn, "drop table userInfo")
+func DelAll(){
+	CurdSql("drop table classRelate")
+	CurdSql("drop table goodsTable")
+	CurdSql("drop table classTable")
+	CurdSql("drop table userInfo")
+	CurdSql("drop table goodsIntro")
 }
 
-func CreateTables(conn *sql.DB){
+func CreateTables(){
 	sqlCmd := fmt.Sprintf(`
 								create table IF NOT EXISTS %s(
 								class_id int,
@@ -43,7 +45,7 @@ func CreateTables(conn *sql.DB){
 								engine=InnoDB default charset=utf8
 								`,"classRelate")
 
-	CurdSql(conn, sqlCmd)
+	CurdSql(sqlCmd)
 
 
 	sqlCmd = fmt.Sprintf(`
@@ -54,7 +56,7 @@ func CreateTables(conn *sql.DB){
 								primary key(class_id))
 								engine=InnoDB default charset=utf8
 								`,"classTable")
-	CurdSql(conn, sqlCmd)
+	CurdSql(sqlCmd)
 
 
 	sqlCmd = fmt.Sprintf(`
@@ -69,7 +71,7 @@ func CreateTables(conn *sql.DB){
 								`,"goodsTable")
 
 
-	CurdSql(conn, sqlCmd)
+	CurdSql(sqlCmd)
 
 	sqlCmd = fmt.Sprintf(`
 								create table IF NOT EXISTS %s(
@@ -79,47 +81,72 @@ func CreateTables(conn *sql.DB){
 								primary key(user_id))
 								engine=InnoDB default charset=utf8
 								`,"userInfo")
-	CurdSql(conn, sqlCmd)
+	CurdSql(sqlCmd)
+
+	sqlCmd = fmt.Sprintf(`
+								create table IF NOT EXISTS %s(
+								goods_id int,
+								intro json,
+								primary key(goods_id))
+								engine=InnoDB default charset=utf8
+								`,"goodsIntro")
+
+
+
+	CurdSql(sqlCmd)
 }
 
-func InsertGood(conn *sql.DB,class_id int,goods_name string,goods_price float64,goods_href string){
+func InsertGood(class_id int,goods_name string,goods_price float64,goods_href string){
 
 	sqlCmd := `insert into goodsTable
 				(class_id,goods_name,goods_price,goods_href)
 				values
 				(?,?,?,?)`
 
-	CurdSql(conn, sqlCmd,class_id,goods_name,goods_price,goods_href)
+	CurdSql(sqlCmd,class_id,goods_name,goods_price,goods_href)
 }
 
-func InsertRelate(conn *sql.DB,class_id int,pid int){
+func InsertRelate(class_id int,pid int){
 
 	sqlCmd := fmt.Sprintf(`insert into classRelate
 									(class_id,pid)
 									values
 									(%d,%d)
 									`, class_id,pid)
-	CurdSql(conn, sqlCmd)
+	CurdSql(sqlCmd)
 }
-func InsertClass(conn *sql.DB,class_id int,class_name string,class_href string){
+func InsertClass(class_id int,class_name string,class_href string){
 	sqlCmd := fmt.Sprintf(`insert into classTable
 									(class_id,class_name,class_href)
 									values(%d,'%s','%s')`,
 									class_id,class_name,class_href)
-	CurdSql(conn, sqlCmd)
+	CurdSql(sqlCmd)
 }
-func InsertUser(conn *sql.DB,username string,email string){
+func InsertUser(username string,email string){
 	sqlCmd := fmt.Sprintf(`insert into userInfo
 									(user_name,user_email)
 									values
 									('%s','%s')
 									`,username,email)
-	CurdSql(conn, sqlCmd)
+	CurdSql(sqlCmd)
 }
-func SelectSql(conn *sql.DB,sqlCmd string,args... interface{}) [][]string{
+
+func InsertGoodIntro(gid string,intro string){
+	gidInt,_ := strconv.ParseInt(gid,10,64)
+	sqlCmd := fmt.Sprintf(`insert into goodsIntro
+									(goods_id,intro)
+									values
+									(?,?)
+									`)
+	CurdSql(sqlCmd,gidInt,intro)
+}
+
+func SelectSql(sqlCmd string,args... interface{}) [][]string{
 	////查询所有
 	//SelectSql(conn,"select * from classTable")
-
+	dbInfo := fmt.Sprintf("%s:%s@%s(%s:%d)/%s",userName,passWord,netWork,server,port,dataBase)
+	conn, err := sql.Open("mysql", dbInfo)
+	defer conn.Close()
 	rows, err := conn.Query(sqlCmd,args...)
 	if err != nil {
 		fmt.Println("Query error ",err.Error())
@@ -151,7 +178,8 @@ func SelectSql(conn *sql.DB,sqlCmd string,args... interface{}) [][]string{
 	return result
 }
 
-func CurdSql(conn *sql.DB,sqlCmd string,args... interface{}){
+
+func CurdSql(sqlCmd string,args... interface{}){
 	//fmt.Println(conn)
 	dbInfo := fmt.Sprintf("%s:%s@%s(%s:%d)/%s",userName,passWord,netWork,server,port,dataBase)
 	conn, err := sql.Open("mysql", dbInfo)

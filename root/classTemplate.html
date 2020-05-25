@@ -5,10 +5,26 @@
     {{ range .}}
     <div class="col-sm-6 col-md-4">
         <div class="card bg-secondary">
-            <div class="card-header"><a class="card-link" style="color: wheat" href={{.Href}}>{{ .Name}}</a></div>
-            <div class="card-body"><a style="color: wheat">分类id:{{.Id}}</a></div>            <br>
+            <div class="card-header"><a class="card-link" style="color: white" href={{.Href}}>{{ .Name}}  分类id:{{.Id}}</a></div>
+            {{ if .GoodsList}}
+                {{ range .GoodsList}}
+                    <div class="card-body">
+                        <b class="text-info">商品id:{{.Gid}}  价格 :¥{{.Gprice}}</b>
+                        <br>
+                        <a class="card-link" style="color: white" href={{.Ghref}}>{{ .Gname}}</a>
+                    </div>
+                {{end}}
+            {{else}}
+                <div class="card-body">
+                    <b class="text-warning">暂时查询不到该分类下的商品信息</b>
+                    <br>
+                </div>
+            {{end}}
+            <br>
         </div>
+        <br>
     </div>
+
     {{end}}
 
 </div>
