@@ -54,3 +54,20 @@ function goodsQuery() {
     xmlhttp.send(text);
 }
 
+function changePasswd() {
+    oldpwd = document.getElementById("old_passwd").value;
+    newpwd = document.getElementById("new_passwd").value;
+    username = document.getElementById("user_name").innerText;
+
+    $.post("/passwd",{
+        oldpwd:oldpwd,
+        newpwd:newpwd,
+        username:username
+    },function (data) {
+        if (data == "ok"){
+            alert("密码修改成功")
+        }else {
+            alert("旧密码不正确")
+        }
+    })
+}

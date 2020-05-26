@@ -15,6 +15,7 @@ import (
 	"sort"
 	"strconv"
 	"unicode/utf8"
+	"./email"
 
 )
 
@@ -67,11 +68,12 @@ func main() {
 	mux.HandleFunc("/hello", classHandler)
 	mux.HandleFunc("/", logHandler)
 	mux.HandleFunc("/regist", registHandler)
+	mux.HandleFunc("/email", emailHandler)
 	mux.HandleFunc("/process", captchaVerify)
 	mux.HandleFunc("/captcha/newId", newCapId)
 	mux.HandleFunc("/template", makeTemplate)
 	mux.Handle("/static/", http.StripPrefix("/static", http.FileServer(http.Dir("./root/static"))))
-
+	mux.HandleFunc("/passwd", passwdHandler)
 	mux.Handle("/captcha/", captcha.Server(captcha.StdWidth, captcha.StdHeight))
 	server := &http.Server{
 		Addr:    ":18080",
@@ -81,6 +83,47 @@ func main() {
 		log.Fatal(err)
 	}
 }
+
+func passwdHandler(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	oldpwd := r.Form.Get("oldpwd")
+	newpwd := r.Form.Get("newpwd")
+	username := r.Form.Get("username")
+	conn:=redisconfirm.InitRedis(passwd)
+	oldpwdRight := redisconfirm.LogCheck(&conn,username,oldpwd)
+	if oldpwdRight == true{
+		redisconfirm.SetPasswd(&conn,username,newpwd)
+		fmt.Fprint(w,"ok")
+	}else {
+		fmt.Fprint(w,"err")
+	}
+}
+
+
+func emailHandler(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	method := r.Form.Get("method")
+	if method == "send"{
+		emailaddr := r.Form.Get("email")
+		email.SendConfirm(emailaddr)
+		fmt.Fprint(w,"ok")
+	}else if method == "confirm"{
+		emailaddr := r.Form.Get("email")
+		captcha := r.Form.Get("captcha")
+		newPasswd := r.Form.Get("newPasswd")
+		if email.EmailConfirm(emailaddr,captcha) == true{
+			result := sqlgo.SelectSql("select user_name from userInfo where user_email = ?",emailaddr)
+			username := result[0][0]
+			conn:=redisconfirm.InitRedis(passwd)
+			redisconfirm.SetPasswd(&conn,username,newPasswd)
+			fmt.Fprint(w,"ok")
+		}else{
+			fmt.Fprint(w,"error")
+		}
+	}
+
+}
+
 
 func newCapId(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, captcha.New())
@@ -234,14 +277,23 @@ func makeClassInfo(result [][]string) []classInfo {
 
 func classHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		file, _ := ioutil.ReadFile("./root/test2.html")
-		fmt.Fprintf(w, string(file))
-	} else if r.Method == "POST" {
 		r.ParseForm()
-		fmt.Fprint(w, 3)
+		username := r.Form.Get("name")
+		result := sqlgo.SelectSql("select user_email from userInfo where user_name = ?",username)
+		emailaddr := result[0][0]
 
+		t,_:= template.ParseFiles("./root/test2.html")
+		t.Execute(w,struct {
+				Username string
+				Emailaddr string
+			}{
+				Username: username,
+				Emailaddr: emailaddr,
+			})
+
+		//file, _ := ioutil.ReadFile("./root/test2.html")
+		//fmt.Fprintf(w, string(file))
 	}
-
 }
 
 func logHandler(w http.ResponseWriter, r *http.Request) {

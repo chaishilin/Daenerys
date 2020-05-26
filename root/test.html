@@ -107,12 +107,19 @@
                             <div class="form-group">
                                 <label for="email">请输入注册邮箱：</label>
                                 <input type="text" class="form-control" id="forgot-email">
+                                <br>
+                                <button type="button" class="btn btn-primary" onclick="sendEmail()">发送验证</button>
+                                <a id="forgot-email-hint"></a>
                             </div>
                             <div class="form-group">
                                 <label for="vcode">邮箱收到的验证码：</label>
                                 <input type="text" class="form-control" id="forgot-vcode">
                             </div>
-                            <button type="button" class="btn btn-primary" onclick="alert('该功能尚未完成')">提交信息</button>
+                            <div class="form-group">
+                                <label for="vcode">新密码：</label>
+                                <input type="text" class="form-control" id="new-passwd">
+                            </div>
+                            <button type="button" class="btn btn-primary" onclick="reWritePasswd()">提交信息</button>
                         </form>
                     </div>
                 </div>

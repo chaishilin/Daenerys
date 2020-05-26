@@ -87,21 +87,21 @@
                         <form>
                             <div class="form-group">
                                 <label for="username">用户名：</label>
-                                <a id="username">username</a>
+                                <a id="user_name">{{.Username}}</a>
                             </div>
                             <div class="form-group">
                                 <label for="email">邮箱：</label>
-                                <a id="email">email</a>
+                                <a id="user_email">{{.Emailaddr}}</a>
                             </div>
                             <div class="form-group">
                                 <label for="vcode">原密码：</label>
-                                <input type="vcode" class="form-control" id="vcode">
+                                <input type="vcode" class="form-control" id="old_passwd">
                             </div>
                             <div class="form-group">
                                 <label for="vcode">新密码：</label>
-                                <input type="vcode" class="form-control" id="vcode">
+                                <input type="vcode" class="form-control" id="new_passwd">
                             </div>
-                            <button type="button"class="btn btn-primary">确认修改</button>
+                            <button type="button"class="btn btn-primary" onclick="changePasswd()">确认修改</button>
                             <button type="button"class="btn btn-primary"  onclick="location='/'">退出登录</button>
                         </form>
                     </div>

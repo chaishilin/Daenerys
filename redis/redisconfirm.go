@@ -52,6 +52,8 @@ func getUsername(conn *redis.Conn, name string) (string, redisState, error) {
 	resMsg = fmt.Sprintf("%s", resp)
 	return resMsg, GetOk, nil
 }
+
+
 func LogCheck (conn *redis.Conn,name string, password string) bool {
 
 	respGet, getState, _ :=  getUsername(conn,name)
@@ -65,6 +67,7 @@ func LogCheck (conn *redis.Conn,name string, password string) bool {
 		}
 	}
 }
+
 func Register(conn *redis.Conn, name string, password string) (string, redisState, error) {
 	var resMsg string
 
@@ -98,4 +101,27 @@ func stateParser(code redisState) string {
 		codeInfo = "setErr"
 	}
 	return codeInfo
+}
+
+
+func CaptchaConfirm(conn *redis.Conn, email string, captcha string) bool{
+	captcha_redis,_ := (*conn).Do("get",email)
+
+	resMsg := fmt.Sprintf("%v", captcha_redis)
+	if resMsg == "<nil>" {
+		return false
+	}
+	resMsg = fmt.Sprintf("%s", captcha_redis)
+	if captcha != resMsg{
+		return false
+	}
+	(*conn).Do("del",email)
+	return true
+}
+func SetCaptcha(conn *redis.Conn, email string, captcha string) {
+	(*conn).Do("set", email, captcha)
+}
+
+func SetPasswd(conn *redis.Conn, username string, passwd string) {
+	(*conn).Do("set", username, passwd)
 }

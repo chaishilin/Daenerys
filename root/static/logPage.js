@@ -22,7 +22,7 @@ function reloadVerify() {
     }
     cap.src = src + "?" + reload
 }
-function capVerify() {
+function capVerify(name) {
     var vcode,text;
     vcode = document.getElementById("log-vcode").value;
     $.post("/process",
@@ -36,7 +36,8 @@ function capVerify() {
                 text = "验证码错误";
             }else {
                 text = "登录成功";
-                location="/hello"
+
+                location="/hello?"+"name="+name
             }
             document.getElementById("logAlert").innerHTML = text;
         })
@@ -55,7 +56,7 @@ function logVerify() {
             function (data) {
                 //console.log(data)
                 if (data == "true"){
-                    capVerify()
+                    capVerify(name)
                 }else{
                     text = "请输入正确的用户名和密码";
                 }
@@ -63,7 +64,6 @@ function logVerify() {
             })
     })
 }
-
 
 
 var pwdReady = false;
@@ -113,4 +113,38 @@ function pwdConfirm() {
         document.getElementById("pwdHint").innerHTML="";
         pwdReady = true;
     }
+}
+
+function sendEmail() {
+    emailaddr = document.getElementById("forgot-email").value;
+    $.post('/email',{
+        email:emailaddr,
+        method: "send"
+        },function () {
+            document.getElementById("forgot-email-hint").innerText = "邮件已经发送";
+        })
+}
+
+
+function reWritePasswd() {
+    emailaddr = document.getElementById("forgot-email").value;
+    captcha =document.getElementById("forgot-vcode").value;
+    newPasswd =document.getElementById("new-passwd").value;
+    captchaConfirm(emailaddr,captcha,newPasswd);
+    document.getElementById("forgot-email-hint").innerHTML="";
+
+}
+function captchaConfirm(emailaddr,captcha,newPasswd) {
+    $.post("/email",{
+        email:emailaddr,
+        captcha:captcha,
+        method:"confirm",
+        newPasswd:newPasswd
+    },function (data) {
+        if (data=="ok"){
+            alert("密码已修改")
+        }else{
+            alert("验证码错误！")
+        }
+    })
 }
