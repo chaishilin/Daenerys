@@ -43,6 +43,7 @@ function goodsQuery() {
         if (xmlhttp.readyState==4 && xmlhttp.status==200)
         {
             document.getElementById("goodsTemp").innerHTML=xmlhttp.responseText;
+            //$("goodsTemp").html(xmlhttp.responseText);
         }
     }
     xmlhttp.open("post","/template",true)

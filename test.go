@@ -1,11 +1,21 @@
 package main
 
-import "./jdSpider"
+import (
+	"fmt"
+	"unicode/utf8"
+)
 
-func main(){
-
-	//jdSpider.GetGoodDetal("https://item.jd.com/4951224.html")
-	jdSpider.GetGoodsIntr()
-
-
+func main() {
+	fmt.Println(isTitle("dsfghf:dgfh"))
+	fmt.Println(isTitle("dsffh"))
+}
+func isTitle(str string) bool {
+	for len(str) > 0 {
+		r, size := utf8.DecodeRuneInString(str)
+		if r == ':'{
+			return false
+		}
+		str = str[size:]
+	}
+	return true
 }

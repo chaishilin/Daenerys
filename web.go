@@ -3,6 +3,7 @@ package main
 import (
 	"./redis"
 	"./sqlgo"
+	"encoding/json"
 	"fmt"
 	"github.com/dchest/captcha"
 	"html/template"
@@ -10,8 +11,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"reflect"
 	"sort"
 	"strconv"
+	"unicode/utf8"
+
 )
 
 type goodsInfo struct {
@@ -92,6 +96,41 @@ func captchaVerify(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func jsonPaser(str string) []string {
+
+	var result []string
+	var resultStr []string
+	var resultMap []string
+	var jsonMap map[string]interface{}
+	jsonMap = make(map[string]interface{})
+	json.Unmarshal([]byte(str),&jsonMap)
+
+	for k, v := range jsonMap {
+		switch fmt.Sprint(reflect.TypeOf(v)) {
+		case "string":
+			resultStr = append(resultStr,k+":	"+v.(string))
+		case "map[string]interface {}":
+			resultMap = append(resultMap,k)
+			for key, value := range v.(map[string]interface{}) {
+				resultMap = append(resultMap,key+":	"+value.(string))
+			}
+		}
+	}
+	result = append(resultStr,resultMap...)
+	return result
+}
+
+func isTitle(str string) bool {
+	for len(str) > 0 {
+		r, size := utf8.DecodeRuneInString(str)
+		if r == ':'{
+			return false
+		}
+		str = str[size:]
+	}
+	return true
+}
+
 func makeTemplate(w http.ResponseWriter, r *http.Request) {
 
 	r.ParseForm()
@@ -110,6 +149,7 @@ func makeTemplate(w http.ResponseWriter, r *http.Request) {
 		}
 		classList := makeClassInfo(result)
 		t, err := template.ParseFiles("./root/classTemplate.html")
+
 		if err != nil {
 			w.WriteHeader(500)
 			fmt.Fprint(w, err)
@@ -127,12 +167,15 @@ func makeTemplate(w http.ResponseWriter, r *http.Request) {
 			result = sqlgo.SelectSql(queryGoodsById, query)
 		}
 		goodsList := makeGoodsInfo(result)
-		t, err := template.ParseFiles("./root/goodsTemplate.html")
-		if err != nil {
-			w.WriteHeader(500)
-			fmt.Fprint(w, err)
-			return
+		//t, err := template.ParseFiles("./root/goodsTemplate.html")
+
+		funcMap := template.FuncMap{
+			"jPaser":jsonPaser,
+			"isTitle":isTitle,
 		}
+
+		t := template.Must(template.New("goodsTemplate.html").Funcs(funcMap).ParseFiles("./root/goodsTemplate.html"))
+
 		t.Execute(w, goodsList)
 	}
 
@@ -213,6 +256,7 @@ func logHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+
 func registHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "POST" {
 		conn := redisconfirm.InitRedis(passwd)
@@ -228,9 +272,7 @@ func registHandler(w http.ResponseWriter, r *http.Request) {
 		} else {
 			fmt.Fprintf(w, "exist")
 		}
-	} else if r.Method == "GET" {
-		t, _ := template.ParseFiles("./root/regist.html")
-		t.Execute(w, "")
-
 	}
 }
+
+

@@ -1,28 +1,32 @@
 <!-- 修改为模板，go web中传入参数-->
 
-<!-- 修改为模板，go web中传入参数-->
-
-<div class="row">
-
+<div class="card-columns">
     {{ range .}}
-        <div class="col-sm-6 col-md-4">
-            <div class="card bg-secondary">
-                <div class="card-header"><a style="color: white">分类id:{{.Gid}}</a></div>
+        <!--div class="col-sm-6 col-md-4"-->
+            <div class="card bg-dark">
+                <div class="card-header"><a style="color: white">分类id:{{.Gid}}      价格:¥{{.Gprice}}</a></div>
                 <div class="card-body">
-                    <a class="card-link" style="color: white" href={{.Ghref}}>{{ .Gname}}</a>
+                    <a class="card-link text-warning" href={{.Ghref}}>{{ .Gname}}</a>
                     <br>
-                    <b class="text-info">价格:¥{{.Gprice}}</b>
                     <br>
                     {{ if .Gjson}}
-                    <b class="text-info">json try :  {{.Gjson}}</b>
+                        {{ range .Gjson | jPaser}}
+                            {{ if .|isTitle}}
+                                <br>
+                                <strong class="text-warning">{{.}}</strong>
+                            {{else}}
+                                <b class="text-white">{{.}}</b>
+                            {{end}}
+                        <br>
+                        {{end}}
                     {{else}}
-                    <b class="text-info">no json yet</b>
+                    <b class="text-warning">no json <yet></yet></b>
                     {{end}}
                 </div>
                 <br>
             </div>
             <br>
-        </div>
+        <!--/div-->
     {{end}}
 
 </div>
