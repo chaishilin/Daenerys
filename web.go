@@ -274,7 +274,6 @@ func makeClassInfo(result [][]string) []classInfo {
 }
 
 
-
 func classHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
 		r.ParseForm()
@@ -326,5 +325,3 @@ func registHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 }
-
-
