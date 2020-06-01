@@ -1,6 +1,6 @@
 # Daenerys
 
-##version2.0
+## version2.0
 
 * V2.0技术要点：
 * 1、系统拆分，学习rpc协议，尝试使用grpc框架，结合proto buffer编译器生成客户端和服务端代码，处理db逻辑
